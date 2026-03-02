@@ -1,0 +1,151 @@
+.footer {
+  background: #fff;
+  border-top: 1px solid #eee;
+  font-family: Arial, sans-serif;
+}
+
+/* ===== TOP POLICY ===== */
+.footer-policy {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 30px;
+  padding: 30px 60px;
+  border-bottom: 1px solid #eee;
+  background: #f9f9f9;
+}
+
+.policy-item {
+  display: flex;
+  gap: 15px;
+  align-items: center;
+}
+
+.policy-item img {
+  width: 40px;
+}
+
+.policy-item h4 {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 600;
+}
+
+.policy-item p {
+  margin: 4px 0 0;
+  font-size: 13px;
+  color: #555;
+}
+
+/* ===== MAIN FOOTER ===== */
+.footer-main {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  padding: 50px 60px;
+}
+
+.footer-col {
+  padding: 0 25px;
+}
+
+.footer-col:not(:last-child) {
+  border-right: 1px solid #eee;
+}
+
+.footer-title {
+  color: red;
+  font-size: 18px;
+  margin-bottom: 15px;
+}
+
+.footer-col p {
+  font-size: 14px;
+  line-height: 1.6;
+  color: #000;
+}
+
+.footer-col ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.footer-col ul li {
+  margin-bottom: 8px;
+}
+
+.footer-col ul li a {
+  text-decoration: none;
+  color: #000;
+  font-size: 14px;
+}
+
+.footer-col ul li a:hover {
+  color: red;
+}
+
+/* ===== SOCIAL ===== */
+.social {
+  display: flex;
+  gap: 10px;
+  margin: 15px 0;
+}
+
+.social i {
+  width: 32px;
+  height: 32px;
+  border: 1px solid #ccc;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 5px;
+  font-size: 14px;
+  color: #000;
+  cursor: pointer;
+}
+
+.social i:hover {
+  background: #000;
+  color: #fff;
+}
+
+/* ===== PAYMENT ===== */
+.payment {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.payment img {
+  height: 35px;
+  background: #fff;
+  border: 1px solid #eee;
+  padding: 5px;
+  border-radius: 4px;
+}
+
+/* ===== NEWSLETTER ===== */
+.newsletter {
+  display: flex;
+  margin-top: 10px;
+}
+
+.newsletter input {
+  flex: 1;
+  padding: 10px;
+  border: 1px solid #ccc;
+}
+
+.newsletter button {
+  padding: 10px 15px;
+  background: red;
+  color: #fff;
+  border: none;
+  cursor: pointer;
+}
+
+/* ===== BO CONG THUONG ===== */
+.bo-cong-thuong {
+  margin-top: 15px;
+  max-width: 160px;
+}
