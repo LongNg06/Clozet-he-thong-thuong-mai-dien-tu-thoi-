@@ -1,9 +1,31 @@
-.home-section {
-  max-width: 1400px;
-  margin: left;
-  padding: 2px 30px;
+.see-more-product {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  margin-top: 30px;
+  margin-bottom: 20px;
 }
 
+.view-all-btn {
+  display: inline-block;
+}
+.view-all-btn {
+  padding: 14px 40px;
+  border: 1px solid #000;
+  background: transparent;
+  cursor: pointer;
+  transition: 0.3s;
+}
+
+.view-all-btn:hover {
+  background: #000;
+  color: #fff;
+}
+.home-section {
+  max-width: 1400px;
+  margin: 0 auto;   /* 👈 CÁI NÀY QUAN TRỌNG */
+  padding: 2px 30px;
+}
 .section-title {
   text-align: left;
   font-size: 26px;

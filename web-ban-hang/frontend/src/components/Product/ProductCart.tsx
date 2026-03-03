@@ -7,8 +7,8 @@ interface Product {
   gia_goc: number | string;
   gia_khuyen_mai?: number | string | null;
   anh: string;
-  mau_sac?: number;
-  kich_co?: number;
+  mau_sac?: number | string;
+  kich_co?: number | string;
   trang_thai?: number;
 }
 
@@ -111,10 +111,19 @@ const ProductCard = ({ product }: { product: Product }) => {
               })}
             </span>
           )}
+          
         </div>
+        
       </div>
+      
     </div>
-  );
+  
+);
+
+  
 };
+<button className="view-all-btn">
+  XEM TẤT CẢ SẢN PHẨM KHUYẾN MÃI
+</button>
 
 export default ProductCard;
