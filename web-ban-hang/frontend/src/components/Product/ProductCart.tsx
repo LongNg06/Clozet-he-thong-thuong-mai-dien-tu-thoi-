@@ -1,3 +1,4 @@
+import { useState, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import "./style.css";
 
@@ -10,10 +11,25 @@ interface Product {
   mau_sac?: number | string;
   kich_co?: number | string;
   trang_thai?: number;
+  hover_img?: string;
 }
 
 const ProductCard = ({ product }: { product: Product }) => {
   const navigate = useNavigate();
+
+  // prepare image URLs (convert relative paths to absolute if needed)
+  const initialImg = useMemo(() => {
+    if (!product.anh) return "";
+    return product.anh.startsWith("http") ? product.anh : `http://localhost:5000${product.anh}`;
+  }, [product.anh]);
+
+  const hoverImgUrl = useMemo(() => {
+    const h = product.hover_img;
+    if (!h) return undefined;
+    return h.startsWith("http") ? h : `http://localhost:5000${h}`;
+  }, [product.hover_img]);
+
+  const [currentImg, setCurrentImg] = useState<string>(initialImg);
 
   // ===== Ép kiểu về number =====
   const giaGoc = Number(product.gia_goc);
@@ -60,7 +76,16 @@ const ProductCard = ({ product }: { product: Product }) => {
 )}
        
 
-        <img src={product.anh} alt={product.ten_sanpham} />
+        <img
+          src={currentImg}
+          alt={product.ten_sanpham}
+          onMouseEnter={() => {
+            if (hoverImgUrl) setCurrentImg(hoverImgUrl);
+          }}
+          onMouseLeave={() => {
+            setCurrentImg(initialImg);
+          }}
+        />
 
         {!isOutOfStock && (
           <div className="hover-overlay">
@@ -122,8 +147,5 @@ const ProductCard = ({ product }: { product: Product }) => {
 
   
 };
-<button className="view-all-btn">
-  XEM TẤT CẢ SẢN PHẨM KHUYẾN MÃI
-</button>
 
 export default ProductCard;

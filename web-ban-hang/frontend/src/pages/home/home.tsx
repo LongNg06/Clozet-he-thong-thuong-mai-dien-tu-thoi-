@@ -54,9 +54,13 @@ function Home() {
       >
         XEM TẤT CẢ SẢN PHẨM KHUYẾN MÃI
       </button>
+      
     </div>
 
   </div>  
+  
 );
+
 }
+
 export default Home;
