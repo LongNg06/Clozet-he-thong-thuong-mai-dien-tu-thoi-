@@ -1,0 +1,174 @@
+.product-detail{
+max-width:1200px;
+margin:auto;
+display:flex;
+gap:40px;
+}
+
+.product-image{
+width:50%;
+}
+
+.product-image img{
+width:100%;
+}
+
+.product-info{
+width:50%;
+}
+
+.product-meta{
+color:#777;
+margin-bottom:15px;
+}
+
+.price-box{
+background:#f6f6f6;
+padding:15px;
+margin-bottom:20px;
+}
+
+.price-new{
+color:red;
+font-size:24px;
+font-weight:bold;
+margin-right:10px;
+}
+
+.price-old{
+text-decoration:line-through;
+color:#999;
+margin-right:10px;
+}
+
+.sale{
+background:red;
+color:white;
+padding:3px 8px;
+border-radius:5px;
+font-size:12px;
+}
+
+.option{
+margin-top:20px;
+}
+
+.options button{
+margin-right:10px;
+padding:8px 14px;
+border:1px solid #ccc;
+background:white;
+cursor:pointer;
+}
+
+.quantity{
+margin-top:20px;
+display:flex;
+align-items:center;
+gap:10px;
+}
+
+.quantity button{
+padding:5px 10px;
+}
+
+.product-buttons{
+margin-top:30px;
+display:flex;
+gap:20px;
+}
+
+.add-cart{
+padding:12px 30px;
+border:2px solid red;
+background:white;
+color:red;
+cursor:pointer;
+}
+
+.buy-now{
+padding:12px 30px;
+background:red;
+color:white;
+border:none;
+cursor:pointer;
+}
+.product-detail{
+display:flex;
+gap:40px;
+padding:40px;
+}
+
+.product-left{
+width:40%;
+}
+
+.main-img{
+width:100%;
+border:1px solid #eee;
+}
+
+.thumb-list{
+display:flex;
+gap:10px;
+margin-top:10px;
+}
+
+.thumb{
+width:70px;
+height:70px;
+object-fit:cover;
+border:2px solid #ddd;
+cursor:pointer;
+}
+
+.thumb:hover{
+border:2px solid red;
+}
+
+.thumb-empty{
+width:70px;
+height:70px;
+border:2px dashed #ccc;
+background:#f7f7f7;
+}
+
+.product-info{
+width:60%;
+}
+
+.options{
+display:flex;
+gap:10px;
+margin-top:10px;
+}
+
+.options button{
+padding:8px 15px;
+border:1px solid #ccc;
+background:white;
+cursor:pointer;
+}
+
+.options button:hover{
+border:1px solid red;
+}
+.variant-gallery{
+display:flex;
+gap:10px;
+margin-top:10px;
+}
+
+.variant-thumb{
+width:70px;
+height:70px;
+object-fit:cover;
+border:2px solid #ddd;
+}
+
+.variant-empty{
+width:70px;
+height:70px;
+border:2px dashed #ccc;
+background:#f5f5f5;
+}

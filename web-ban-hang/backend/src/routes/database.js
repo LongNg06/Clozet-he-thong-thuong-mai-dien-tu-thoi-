@@ -10,8 +10,6 @@ const db = mysql.createConnection({
 db.connect((err) => {
   if (err) {
     console.error("Lỗi kết nối database:", err);
-  } else {
-    console.log("Kết nối database thành công");
   }
 });
 

@@ -4,15 +4,17 @@ import Footer from './components/footer/Footer';
 import BannerSlider from './components/slider/BannerSlider';
 import Home from './pages/home/home';
 import SaleBoSuuTap from './components/SaleBoSuuTap/SaleBoSuuTap';
+import BoSuuTapMuaHe from './components/BoSuuTapMuaHe/BoSuuTapMuaHe';
 import CategoryTabs from './components/CategoryTabs/CategoryTabs';
 import CategorySection from './components/Category/CategorySection';
-function App() {
+import { Routes, Route } from 'react-router-dom';
+import CartPage from './pages/cart/CartPage';
+import CheckoutPage from './pages/checkout/CheckoutPage';
+import CartDrawer from './components/CartDrawer/CartDrawer';
+import ProductDetail from "./pages/ProductDetail/ProductDetail";
+function HomeLayout() {
   return (
-    <div className="App">
-     <>
-      <Header />
-        {/* Danh mục */}
-    
+    <>
       <BannerSlider />
       <CategorySection />
       <Home />
@@ -23,14 +25,32 @@ function App() {
         defaultActive="Áo Khoác"
         categoryMap={{ "Áo Khoác": 1, "Áo Polo": 5, "Áo Sơ Mi": 7 }}
       />
+      {/* Bộ sưu tập Mùa Hè - xuất hiện giữa 2 CategoryTabs */}
+      <BoSuuTapMuaHe categoryIds={[3, 5]} image="/danhmuc_img/bosuutaphe.jpg" />
       {/* Second tab row (tab2) for Quần */}
       <CategoryTabs
         items={["Quần Kaki", "Quần Jean", "Quần Âu"]}
         defaultActive="Quần Kaki"
         categoryMap={{ "Quần Kaki": 3, "Quần Jean": 4, "Quần Âu": 6 }}
       />
-      <Footer />
     </>
+  );
+}
+
+function App() {
+  return (
+    <div className="App">
+      <Header />
+      <CartDrawer />
+      <main>
+        <Routes>
+          <Route path="/" element={<HomeLayout />} />
+          <Route path="/cart" element={<CartPage />} />
+          <Route path="/checkout" element={<CheckoutPage />} />
+          <Route path="/product/:id" element={<ProductDetail />} />
+        </Routes>
+      </main>
+      <Footer />
     </div>
   );
 }
