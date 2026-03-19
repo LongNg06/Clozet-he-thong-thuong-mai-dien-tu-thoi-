@@ -1,0 +1,38 @@
+.home-section {
+  max-width: 1400px;
+  margin: left;
+  padding: 2px 30px;
+}
+
+.section-title {
+  text-align: left;
+  font-size: 26px;
+  margin-bottom: 30px;
+  padding: 2px 30px;
+   font-size: 40px;
+  font-weight: 800;
+  color: #000;
+  margin-top: 100px;
+  margin-bottom: 24px;
+}
+
+/* QUAN TRỌNG */
+.product-grid {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 20px;
+}
+
+
+/* Responsive */
+@media (max-width: 1200px) {
+  .product-grid {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}
+
+@media (max-width: 768px) {
+  .product-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
