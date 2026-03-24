@@ -12,6 +12,8 @@ import CartPage from './pages/cart/CartPage';
 import CheckoutPage from './pages/checkout/CheckoutPage';
 import CartDrawer from './components/CartDrawer/CartDrawer';
 import ProductDetail from "./pages/ProductDetail/ProductDetail";
+import NewProduct from './pages/NewProduct/newProduct';
+
 function HomeLayout() {
   return (
     <>
@@ -48,6 +50,8 @@ function App() {
           <Route path="/cart" element={<CartPage />} />
           <Route path="/checkout" element={<CheckoutPage />} />
           <Route path="/product/:id" element={<ProductDetail />} />
+          <Route path="/new-products" element={<NewProduct />} /> {/* mới */}
+          
         </Routes>
       </main>
       <Footer />

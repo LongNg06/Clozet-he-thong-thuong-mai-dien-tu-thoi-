@@ -1,4 +1,4 @@
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { useState, useEffect } from "react";
 import "./header.css";
 
@@ -6,6 +6,7 @@ import logo from "../img2/logo.png";
 import banner from "../img2/topbar_img.jpg";
 
 const Header = () => {
+  const navigate = useNavigate();
   const [showBanner, setShowBanner] = useState(true);
   const [count, setCount] = useState(0);
 
@@ -77,10 +78,12 @@ const Header = () => {
           {/* MENU */}
           <nav className="menu">
             <ul>
-              <li>
-                <Link to="#">Sản phẩm mới</Link>
+              <li
+                style={{ cursor: "pointer" }} // hiện con trỏ tay khi hover
+                onClick={() => navigate("/new-products")}
+              >
+                Sản phẩm mới
               </li>
-
               <li className="has-dropdown">
                 <Link to="#">Danh mục sale</Link>
                 <ul className="dropdown">
