@@ -55,13 +55,24 @@ const Header = () => {
             các ngày trong tuần)
             <span className="divider">|</span>
             <Link to="#">Liên hệ</Link>
+            
           </div>
 
-          <div className="top-bar-right">
-            <i className="fa-regular fa-bell"></i>
-            <span>Thông báo của tôi</span>
-            <span className="badge">0</span>
-          </div>
+        <div className="top-bar-right">
+  <i className="fa-regular fa-bell"></i>
+  <span>Thông báo của tôi</span>
+  <span className="badge">0</span>
+
+  <span style={{ marginLeft: 12 }}>
+    <Link to="/login" style={{ textDecoration: "none", color: "inherit", marginRight: 8 }}>
+      Đăng nhập
+    </Link>
+    <Link to="/register" style={{ textDecoration: "none", color: "inherit" }}>
+      Đăng ký
+    </Link>
+  </span>
+</div>
+
         </div>
       </div>
 
@@ -84,7 +95,7 @@ const Header = () => {
               >
                 Sản phẩm mới
               </li>
-              <li className="has-dropdown">
+              {/* <li className="has-dropdown">
                 <Link to="#">Danh mục sale</Link>
                 <ul className="dropdown">
                   <li>
@@ -97,7 +108,7 @@ const Header = () => {
                     <Link to="#">Sale 50%</Link>
                   </li>
                 </ul>
-              </li>
+              </li> */}
 
               <li className="has-dropdown">
                 <Link to="#">Áo nam</Link>

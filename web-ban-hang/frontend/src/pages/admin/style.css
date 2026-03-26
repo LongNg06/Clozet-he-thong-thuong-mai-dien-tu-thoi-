@@ -1,0 +1,102 @@
+:root{
+  --sidebar-w:300px; /* side-panel width */
+  --topbar-h:64px;
+  --bg:#f8fafc;
+  --accent:#ffd54a;
+  --muted:#6b7280;
+  --brand-bg:#0b1220;
+  --card-shadow: 0 6px 18px rgba(15,23,42,0.06);
+}
+
+/* Base */
+* { box-sizing: border-box; }
+html, body, #root { height: 100%; }
+body { margin: 0; font-family: Inter, system-ui, -apple-system, "Segoe UI", Roboto, Arial; background: var(--bg); color: #111; }
+
+/* Admin root */
+.admin-root { min-height: 100vh; }
+
+/* Topbar (header inside admin) */
+.topbar {
+  position: fixed;
+  left: 0;
+  right: 0;
+  top: 0;
+  height: var(--topbar-h);
+  background: #0f1724;
+  color: #fff;
+  display: flex;
+  align-items: center;
+  padding: 0 16px;
+  z-index: 1100;
+  gap: 12px;
+}
+.topbar .topbar-left { color: #fff; font-size: 13px; }
+.topbar .hotline { margin-right: 8px; }
+.topbar .topbar-right { margin-left: auto; display:flex; gap:12px; align-items:center; }
+.topbar .top-link { color: rgba(255,255,255,0.9); text-decoration: none; font-size: 13px; }
+
+/* Content area (starts below topbar) */
+.content {
+  margin-top: var(--topbar-h);
+  min-height: calc(100vh - var(--topbar-h));
+  padding: 20px;
+  position: relative;
+  z-index: 0;
+}
+
+/* Greeting placed below topbar and aligned with content (not inside topbar) */
+.admin-greeting {
+  margin: 12px 0;
+  padding-left: calc(var(--sidebar-w) + 32px); /* leave space for side-panel */
+}
+
+/* Main content spacing */
+.admin-content {
+  padding-top: 8px;
+  padding-bottom: 2rem;
+}
+
+/* Overview row: shift right to avoid side-panel */
+.overview-row {
+  margin-left: calc(var(--sidebar-w) + 32px);
+  margin-bottom: 12px;
+}
+
+/* Grid & columns */
+.row { display: flex; flex-wrap: wrap; margin: -0.5rem; }
+.col { padding: 0.5rem; flex: 1 1 0; }
+.col-4 { flex: 0 0 33.3333%; max-width: 33.3333%; }
+.col-12 { flex: 0 0 100%; max-width: 100%; }
+
+/* Card */
+.card { background: #fff; border-radius: 10px; box-shadow: var(--card-shadow); padding: 1rem; overflow: hidden; }
+.card .title { font-size: 0.95rem; color: var(--muted); }
+.card .value { font-size: 1.6rem; font-weight: 700; margin-top: 0.5rem; }
+
+/* Buttons */
+.btn { display: inline-block; padding: 0.45rem 0.75rem; border-radius: 6px; text-decoration: none; cursor: pointer; border: 1px solid transparent; font-size: 0.9rem; background: transparent; color: inherit; }
+.btn-primary { background: #0d6efd; color: #fff; border-color: #0d6efd; }
+.btn-outline-danger { background: transparent; color: #dc3545; border-color: #dc3545; }
+.btn-sm { padding: 0.25rem 0.5rem; font-size: 0.8rem; }
+
+/* Product image */
+.product-img { height: 160px; object-fit: cover; border-radius: 8px 8px 0 0; width: 100%; display:block; }
+
+/* Badges */
+.badge { display: inline-block; padding: 0.25rem 0.5rem; border-radius: 6px; font-size: 0.75rem; }
+.bg-danger { background: #dc3545; color: #fff; }
+.bg-warning { background: #ffc107; color: #111; }
+.bg-info { background: #0dcaf0; color: #111; }
+
+/* Footer inside admin */
+.admin-footer { margin-top: 24px; padding-top: 12px; }
+
+/* Responsive */
+@media (max-width: 900px) {
+  :root { --sidebar-w: 100%; }
+  .admin-greeting { padding-left: 0; }
+  .overview-row { margin-left: 0; }
+  .content { padding: 16px; }
+  .admin-content { padding-top: calc(var(--topbar-h) + 120px); }
+}

@@ -13,7 +13,9 @@ import CheckoutPage from './pages/checkout/CheckoutPage';
 import CartDrawer from './components/CartDrawer/CartDrawer';
 import ProductDetail from "./pages/ProductDetail/ProductDetail";
 import NewProduct from './pages/NewProduct/newProduct';
-
+import Login from "../src/components/Login/Login";
+// import SignUp from "../src/components/SignUp/SignUp";
+import Admin from "../src/pages/admin/admin";
 function HomeLayout() {
   return (
     <>
@@ -51,6 +53,9 @@ function App() {
           <Route path="/checkout" element={<CheckoutPage />} />
           <Route path="/product/:id" element={<ProductDetail />} />
           <Route path="/new-products" element={<NewProduct />} /> {/* mới */}
+          <Route path="/login" element={<Login />} />
+  {/* <Route path="/register" element={<Register />} /> */}
+ <Route path="/admin/*" element={<Admin />} />
           
         </Routes>
       </main>
