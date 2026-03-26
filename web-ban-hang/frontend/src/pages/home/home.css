@@ -1,0 +1,60 @@
+.see-more-product {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  margin-top: 30px;
+  margin-bottom: 20px;
+}
+
+.view-all-btn {
+  display: inline-block;
+}
+.view-all-btn {
+  padding: 14px 40px;
+  border: 1px solid #000;
+  background: transparent;
+  cursor: pointer;
+  transition: 0.3s;
+}
+
+.view-all-btn:hover {
+  background: #000;
+  color: #fff;
+}
+.home-section {
+  max-width: 1400px;
+  margin: 0 auto;   /* 👈 CÁI NÀY QUAN TRỌNG */
+  padding: 2px 30px;
+}
+.section-title {
+  text-align: left;
+  font-size: 26px;
+  margin-bottom: 30px;
+  padding: 2px 30px;
+   font-size: 40px;
+  font-weight: 800;
+  color: #000;
+  margin-top: 100px;
+  margin-bottom: 24px;
+}
+
+/* QUAN TRỌNG */
+.product-grid {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 20px;
+}
+
+
+/* Responsive */
+@media (max-width: 1200px) {
+  .product-grid {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}
+
+@media (max-width: 768px) {
+  .product-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}

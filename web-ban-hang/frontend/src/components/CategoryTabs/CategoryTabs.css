@@ -1,0 +1,53 @@
+.category-tabs {
+  display: flex;
+  gap: 28px;
+  align-items: center;
+  justify-content: center;
+}
+.category-tabs .tab {
+  font-size: 26px;
+  font-weight: 700;
+  color: #bdbdbd;
+  padding-bottom: 8px;
+  cursor: pointer;
+  white-space: nowrap;
+  /* no hover underline here; active state only */
+}
+.category-tabs .tab.active {
+  color: #000;
+  border-bottom: 3px solid #000;
+}
+/* hover underline removed per request */
+
+@media (max-width: 768px) {
+  .category-tabs { gap: 12px; }
+  .category-tabs .tab { font-size: 20px; }
+}
+
+/* product grid inside category tabs */
+.ct-product-grid {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 20px;
+  margin-top: 22px;
+}
+
+@media (max-width: 1200px) {
+  .ct-product-grid { grid-template-columns: repeat(4, 1fr); }
+}
+@media (max-width: 768px) {
+  .ct-product-grid { grid-template-columns: repeat(2, 1fr); }
+}
+
+/* wrapper to align tabs and products like other sections */
+.category-tabs-wrapper {
+  max-width: 1400px;
+  margin: 0 auto 40px auto;
+  padding: 0 30px;
+  text-align: center;
+}
+
+.category-tabs .tab {
+  margin: 0 6px;
+}
+
