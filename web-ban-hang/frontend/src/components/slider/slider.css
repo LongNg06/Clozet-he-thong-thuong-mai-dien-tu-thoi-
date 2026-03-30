@@ -1,0 +1,117 @@
+.warning {
+  background: red;
+  color: #fff;
+  text-align: center;
+  padding: 8px;
+  font-weight: bold;
+}
+
+.swiper {
+  width: 100%;
+  overflow: hidden;
+}
+
+.swiper-wrapper {
+  display: flex;
+  transition: transform 0.6s ease;
+}
+
+/* .swiper-slide {
+  min-width: 100%;
+} */
+
+.swiper-slide img {
+  width: 100%;
+  display: block;
+}
+/* ===== SLIDER BUTTONS ONLY ===== */
+/* .nav {
+  position: absolute;
+  top: 70%;
+  transform: translateY(-50%);
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  border: none;
+  background: rgba(255, 255, 255, 0.9);
+  color: #000;
+  font-size: 22px;
+  font-weight: bold;
+  cursor: pointer;
+  z-index: 20;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.25s ease;
+}
+
+.nav.prev {
+  left: 20px;
+}
+
+.nav.next {
+  right: 20px;
+}
+
+
+.swiper:hover .nav {
+  opacity: 1;
+  visibility: visible;
+  transform: translate(0, -50%);
+}
+
+.nav:hover {
+  background: #000;
+  color: #fff;
+} */
+ .nav {
+  position: absolute;
+  top: 70%;
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  border: none;
+  background: rgba(255, 255, 255, 0.9);
+  color: #000;
+  font-size: 22px;
+  font-weight: bold;
+  cursor: pointer;
+  z-index: 20;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  /* 🔒 ẨN BAN ĐẦU */
+  opacity: 0;
+  visibility: hidden;
+
+  transition: all 0.35s ease;
+}
+
+/* VỊ TRÍ + TRẠNG THÁI ẨN */
+.nav.prev {
+  left: 20px;
+  transform: translate(-20px, -50%);
+}
+
+.nav.next {
+  right: 20px;
+  transform: translate(20px, -50%);
+}
+
+/* 🟢 HOVER SLIDER → HIỆN */
+.swiper:hover .nav {
+  opacity: 1;
+  visibility: visible;
+}
+
+.swiper:hover .nav.prev,
+.swiper:hover .nav.next {
+  transform: translate(0, -50%);
+}
+
+/* hover nút */
+.nav:hover {
+  background: #000;
+  color: #fff;
+}
