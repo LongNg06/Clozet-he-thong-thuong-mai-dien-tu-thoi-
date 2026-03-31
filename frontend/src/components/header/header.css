@@ -95,10 +95,23 @@
   list-style: none;
   display: flex;
   gap: 25px;
+  align-items: center;
 }
 
 .menu li {
   position: relative;
+}
+
+.menu li span {
+  display: inline-flex;
+  align-items: center;
+  height: 100%;
+}
+
+.menu li button {
+  margin-left: 8px;
+  padding: 4px 8px;
+  cursor: pointer;
 }
 
 .menu a {
