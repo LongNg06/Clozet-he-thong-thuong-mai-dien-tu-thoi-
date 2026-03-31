@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import "./Login.css";
 
 function Login() {
@@ -58,7 +58,7 @@ function Login() {
         <a href="#">Quên mật khẩu?</a>
       </p>
       <p>
-        Chưa có tài khoản? <a href="/signup">Đăng ký</a>
+        Chưa có tài khoản? <Link to="/register">Đăng ký</Link>
       </p>
     </div>
   </form>

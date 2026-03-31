@@ -47,6 +47,35 @@ app.post("/login", (req, res) => {
   });
 });
 
+app.post("/register", (req, res) => {
+  const { name, email, password } = req.body;
+
+  // check rỗng
+  if (!name || !email || !password) {
+    return res.status(400).json({ message: "Thiếu thông tin" });
+  }
+
+  // check email tồn tại
+  const checkSql = "SELECT * FROM kh WHERE email = ?";
+  db.query(checkSql, [email], (err, result) => {
+    if (err) return res.status(500).json({ message: "Lỗi server" });
+
+    if (result.length > 0) {
+      return res.status(400).json({ message: "Email đã tồn tại" });
+    }
+
+    // thêm user
+    const insertSql =
+      "INSERT INTO kh (ho_ten, email, mat_khau, role) VALUES (?, ?, ?, 'user')";
+
+    db.query(insertSql, [name, email, password], (err) => {
+      if (err) return res.status(500).json({ message: "Lỗi server" });
+
+      res.json({ message: "Đăng ký thành công" });
+    });
+  });
+});
+
 // chạy server
 app.listen(5000, () => {
   console.log("Server đang chạy ở port 5000");
