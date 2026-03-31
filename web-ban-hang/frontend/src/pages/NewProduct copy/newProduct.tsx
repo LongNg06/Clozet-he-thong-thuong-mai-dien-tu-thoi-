@@ -1,5 +1,5 @@
 "use client";
-
+import { useLocation } from "react-router-dom";
 import { useEffect, useState } from "react";
 import ProductCard from "../../components/Product/ProductCart";
 import "./newProduct.css";
@@ -27,6 +27,7 @@ const NewProduct = () => {
   const [filtered, setFiltered] = useState<Product[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState(true);
+  const location = useLocation();
 
   // FILTER
   const [price, setPrice] = useState(3000000);
@@ -125,7 +126,7 @@ const NewProduct = () => {
       }
 
       const data = await res.json();
-      console.log("FETCH CATEGORY:", url, data);
+      // console.log("FETCH CATEGORY:", url, data);
 
       const mapped = (data || []).map((p: any) => ({
         ...p,
@@ -208,6 +209,16 @@ const NewProduct = () => {
       setLoading(false);
     }
   }
+  useEffect(() => {
+  const params = new URLSearchParams(location.search);
+  const category = params.get("category");
+
+  if (category) {
+    const id = Number(category);
+    setActiveCategory(id);
+    fetchByCategory(id);
+  }
+}, [location.search]);
 
   // ===== LOAD CATEGORIES AND AUTO LOAD ALL PRODUCTS ON MOUNT =====
   useEffect(() => {
@@ -233,8 +244,17 @@ const NewProduct = () => {
       } finally {
         // Auto-load all products on mount
         if (mounted) {
-          await fetchByCategory(null);
-          setActiveCategory(null);
+          const params = new URLSearchParams(location.search);
+const category = params.get("category");
+
+if (category) {
+  const id = Number(category);
+  setActiveCategory(id);
+  await fetchByCategory(id);
+} else {
+  await fetchByCategory(null);
+  setActiveCategory(null);
+}
         }
       }
     })();
@@ -329,46 +349,8 @@ const NewProduct = () => {
           </div>
         </div>
 
-        {/* COLOR */}
-        <div className="filter-group">
-          <h4>Màu sắc</h4>
-
-          <div className="color-list">
-            {COLORS_LIST.map((c) => (
-              <span
-                key={c}
-                className={`color ${selectedColor === c ? "active" : ""}`}
-                style={{ background: colorMap[c] || "#ccc" }}
-                onClick={() => handleColorClick(c)}
-                title={c}
-              />
-            ))}
-          </div>
-
-          <div style={{ marginTop: 8, fontSize: 13, color: "#666" }}>
-            <div><strong>Màu tối:</strong> Đen, Xám đậm, Nâu</div>
-            <div><strong>Màu lạnh:</strong> Xanh dương, Xanh lá lạnh, Tím lạnh</div>
-            <div><strong>Màu sáng:</strong> Trắng, Kem, Be</div>
-            <div><strong>Màu nóng:</strong> Đỏ, Cam, Vàng</div>
-          </div>
-        </div>
-
-        {/* SIZE */}
-        <div className="filter-group">
-          <h4>Size</h4>
-
-          <div className="size-grid">
-            {SIZES_LIST.map((s) => (
-              <button
-                key={s}
-                className={selectedSize === s ? "active" : ""}
-                onClick={() => handleSizeClick(s)}
-              >
-                {s}
-              </button>
-            ))}
-          </div>
-        </div>
+      
+       
       </aside>
 
       {/* PRODUCTS */}

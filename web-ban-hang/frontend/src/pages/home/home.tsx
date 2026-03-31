@@ -15,7 +15,7 @@ interface Product {
 }
 
 
-function Home() {
+export default function Home() {
   const [products, setProducts] = useState<Product[]>([]);
   const navigate = useNavigate(); // 👈 thêm dòng này
 
@@ -30,8 +30,9 @@ function Home() {
 
   return (
   <div className="home-section">
+    
     <h2 className="section-title">SẢN PHẨM SALES TẾT</h2>
-
+ 
     <div className="product-grid">
     {products.slice(0, 6).map((product) => (
   <ProductCard
@@ -52,7 +53,7 @@ function Home() {
         className="view-all-btn"
         onClick={() => navigate("/sale")}
       >
-        XEM TẤT CẢ SẢN PHẨM KHUYẾN MÃI
+        XEM TẤT CẢ SẢN PHẨM MỚI 
       </button>
       
     </div>
@@ -63,4 +64,4 @@ function Home() {
 
 }
 
-export default Home;
+export { Home };

@@ -66,7 +66,7 @@ export default function CartDrawer() {
     return s + (it.quantity || 0) * price;
   }, 0);
 
-  const FREE_SHIP_THRESHOLD = 1000000; // 1,000,000 VND
+  const FREE_SHIP_THRESHOLD = 500000; // 500,000 VND
   const remainingForFree = Math.max(0, FREE_SHIP_THRESHOLD - grandTotal);
   const progress = Math.min(1, grandTotal / FREE_SHIP_THRESHOLD);
 
@@ -116,7 +116,16 @@ export default function CartDrawer() {
 
       <div className="drawer-footer">
         <div className="footer-total">Tổng cộng: <strong>{grandTotal.toLocaleString('vi-VN')}₫</strong></div>
-        <a href="/checkout" className="view-cart">Thanh toán</a>
+        <button className="view-cart" onClick={() => {
+          // If eligible for free shipping, store preference and lock it on checkout
+          if (grandTotal >= FREE_SHIP_THRESHOLD) {
+            try { localStorage.setItem('checkoutShipping','free'); } catch {};
+          } else {
+            try { localStorage.removeItem('checkoutShipping'); } catch {};
+          }
+          // navigate to checkout
+          window.location.href = '/checkout';
+        }}>Thanh toán</button>
       </div>
       </div>
     </>

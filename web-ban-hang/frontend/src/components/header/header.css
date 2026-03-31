@@ -1,4 +1,4 @@
-/* ========== RESET CƠ BẢN CHO HEADER ========== */
+========== RESET CƠ BẢN CHO HEADER ==========
 *
 
 .container {
@@ -91,22 +91,82 @@
 }
 
 /* ========== MENU ========== */
+/* giống hiệu ứng menu a */
+
+.menu li.highlight{
+
+position: relative;
+
+font-weight: 500;
+color:#000;
+padding:8px 0;
+
+display:inline-block;
+
+cursor:pointer;
+
+}
+
+/* gạch đỏ ẩn ban đầu */
+
+.menu li.highlight::after{
+
+content:"";
+
+position:absolute;
+
+left:0;
+bottom:-6px;
+
+width:0;
+height:2px;
+
+background:#c00;
+
+transition:0.25s;
+
+}
+
+/* hover chạy gạch */
+
+.menu li.highlight:hover::after{
+
+width:100%;
+
+}
+
+/* hover đổi màu chữ */
+
+.menu li.highlight:hover{
+
+color:#c00;
+
+}
 .menu > ul {
   list-style: none;
   display: flex;
+  align-items: center;   /* căn giữa theo chiều dọc */
   gap: 25px;
+  margin: 0;
+  padding: 0;
 }
 
 .menu li {
   position: relative;
+  display: flex;
+  align-items: center;   /* đảm bảo item không bị lệch */
 }
 
 .menu a {
   text-decoration: none;
   color: #000;
   font-weight: 500;
-  padding: 8px 0;
-  display: inline-block;
+
+  height: 40px;          /* chiều cao đồng đều */
+  display: flex;
+  align-items: center;   /* chữ nằm giữa */
+
+  position: relative;
 }
 
 .menu a:hover {
@@ -182,4 +242,60 @@
   position: absolute;
   top: -6px;
   right: -8px;
+}
+/* ===== MENU STYLE XỊN ===== */
+
+.menu > ul{
+gap:35px;
+}
+
+.menu a{
+
+position:relative;
+font-size:16px;
+font-weight:600;
+letter-spacing:0.3px;
+transition:0.25s;
+
+}
+
+/* hover đổi màu */
+.menu a:hover{
+color:#e53935;
+}
+
+/* gạch dưới animation */
+.menu a::after{
+
+content:"";
+position:absolute;
+left:0;
+bottom:-6px;
+
+width:0;
+height:2px;
+
+background:#e53935;
+
+transition:0.25s;
+
+}
+
+.menu a:hover::after{
+
+width:100%;
+
+}
+
+/* active menu */
+.menu .active{
+
+color:#e53935;
+
+}
+
+.menu .active::after{
+
+width:100%;
+
 }

@@ -1,3 +1,70 @@
 .checkout-page { padding:30px }
 .checkout-box { background:#fff; padding:20px; border-radius:8px }
 .pay-btn { background:#e53935; color:#fff; border:none; padding:10px 14px; border-radius:6px }
+
+/* Styles for restored checkout layout */
+.checkout-wrapper { font-family: Inter, ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial; color: #111827; }
+.checkout-wrapper .flex { display:flex }
+.checkout-wrapper .items-center { align-items:center }
+.checkout-wrapper .justify-between { justify-content:space-between }
+.checkout-wrapper .mb-8 { margin-bottom:2rem }
+.checkout-wrapper .max-w-6xl { max-width:72rem; margin-left:auto; margin-right:auto }
+.checkout-wrapper .py-8 { padding-top:2rem; padding-bottom:2rem }
+.checkout-wrapper .px-4 { padding-left:1rem; padding-right:1rem }
+.checkout-wrapper .grid { display:grid }
+.checkout-wrapper .grid-cols-1 { grid-template-columns: 1fr }
+@media(min-width:1024px){ .checkout-wrapper .lg\:grid-cols-2 { grid-template-columns: 1fr 420px } }
+.checkout-wrapper .gap-8 { gap:2rem }
+.checkout-wrapper .bg-white { background:#fff }
+.checkout-wrapper .rounded-lg { border-radius:0.5rem }
+.checkout-wrapper .p-6 { padding:1.5rem }
+.checkout-wrapper h1, .checkout-wrapper h2 { color:#0f172a }
+.checkout-wrapper .text-xl { font-size:1.125rem }
+.checkout-wrapper .font-semibold { font-weight:600 }
+.checkout-wrapper .mb-4 { margin-bottom:1rem }
+
+.checkout-wrapper input[type="text"], .checkout-wrapper input[type="email"], .checkout-wrapper input[type="tel"]{
+	width:100%; padding:.5rem .75rem; border:1px solid #e5e7eb; border-radius:0.5rem; box-sizing:border-box;
+}
+
+.checkout-wrapper label { display:block; margin-bottom:.25rem; font-size:.875rem }
+
+.checkout-wrapper .w-full { width:100% }
+.checkout-wrapper .py-3 { padding-top:.75rem; padding-bottom:.75rem }
+.checkout-wrapper .rounded-lg { border-radius:.5rem }
+.checkout-wrapper .bg-blue-600 { background:#2563eb; color:#fff }
+.checkout-wrapper .bg-gray-200 { background:#e5e7eb }
+.checkout-wrapper .text-white { color:#fff }
+
+.checkout-wrapper .order-list { display:flex; flex-direction:column; gap:1rem }
+.checkout-wrapper .order-item { display:flex; align-items:center; gap:1rem; padding-bottom:1rem; border-bottom:1px solid #f3f4f6 }
+.checkout-wrapper .order-item .name { font-weight:600 }
+.checkout-wrapper .order-item .qty { color:#6b7280 }
+.checkout-wrapper .order-item img { display:block; width:100%; height:100%; object-fit:cover }
+.checkout-wrapper .order-total { font-weight:700; margin-top:0.5rem }
+
+.checkout-wrapper .checkout-actions { display:flex; gap:0.75rem; flex-direction:column }
+.checkout-wrapper .checkout-actions .pay-btn { padding:.75rem 1rem; border-radius:.5rem; background:#2563eb; color:#fff; border:none; cursor:pointer }
+.checkout-wrapper .checkout-actions .secondary { background:#f3f4f6; color:#111827 }
+
+/* small tweaks for responsiveness */
+@media(max-width:640px){
+	.checkout-wrapper .lg\:grid-cols-2 { grid-template-columns: 1fr }
+}
+
+/* Shipping options */
+.checkout-wrapper .shipping-options { display:flex; flex-direction:column; gap:0.5rem; margin-top:0.5rem }
+.checkout-wrapper .shipping-option { display:block; border:1px solid #e5e7eb; padding:0.75rem; border-radius:8px; cursor:pointer; background:#fff }
+.checkout-wrapper .shipping-option.selected { border-color:#3b82f6; box-shadow:0 2px 8px rgba(59,130,246,0.08); background:#f0f9ff }
+.checkout-wrapper .ship-row { display:flex; justify-content:space-between; align-items:center }
+.checkout-wrapper .ship-name { font-weight:600 }
+.checkout-wrapper .ship-desc { font-size:0.875rem; color:#6b7280; margin-top:0.25rem }
+
+/* Thumbnail */
+.checkout-wrapper .thumb { width:48px; height:48px; background:#f3f4f6; border-radius:8px; overflow:hidden; flex-shrink:0 }
+.checkout-wrapper .thumb-img { width:100%; height:100%; object-fit:cover; display:block }
+
+/* Error text */
+.checkout-wrapper .text-red-500 { color:#dc2626 }
+.checkout-wrapper .text-sm { font-size:0.875rem }
+.checkout-wrapper .mt-1 { margin-top:0.25rem }

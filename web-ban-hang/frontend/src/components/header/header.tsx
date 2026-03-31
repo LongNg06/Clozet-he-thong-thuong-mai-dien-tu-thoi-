@@ -9,6 +9,7 @@ const Header = () => {
   const navigate = useNavigate();
   const [showBanner, setShowBanner] = useState(true);
   const [count, setCount] = useState(0);
+  const [user, setUser] = useState<any>(null);
 
   useEffect(() => {
     function load() {
@@ -26,9 +27,31 @@ const Header = () => {
 
     load();
     window.addEventListener("cart:open", load as EventListener);
+    // load auth
+    const raw = localStorage.getItem("user");
+    if (raw) {
+      try { setUser(JSON.parse(raw)); } catch { setUser(null); }
+    }
 
-    return () =>
+    const onUserLogin = (e: any) => {
+      const detail = e?.detail || null;
+      if (detail) setUser(detail);
+      else {
+        const r = localStorage.getItem('user');
+        if (r) try { setUser(JSON.parse(r)); } catch { setUser(null); }
+      }
+    };
+
+    const onUserLogout = () => setUser(null);
+
+    window.addEventListener('user:login', onUserLogin as EventListener);
+    window.addEventListener('user:logout', onUserLogout as EventListener);
+
+    return () => {
       window.removeEventListener("cart:open", load as EventListener);
+      window.removeEventListener('user:login', onUserLogin as EventListener);
+      window.removeEventListener('user:logout', onUserLogout as EventListener);
+    };
   }, []);
 
   return (
@@ -63,14 +86,30 @@ const Header = () => {
   <span>Thông báo của tôi</span>
   <span className="badge">0</span>
 
-  <span style={{ marginLeft: 12 }}>
-    <Link to="/login" style={{ textDecoration: "none", color: "inherit", marginRight: 8 }}>
-      Đăng nhập
-    </Link>
-    <Link to="/register" style={{ textDecoration: "none", color: "inherit" }}>
-      Đăng ký
-    </Link>
-  </span>
+        <span style={{ marginLeft: 12 }}>
+          {user ? (
+            <>
+              <span style={{ marginRight: 12 }}>Xin chào, <strong>{user.name || user.ho_ten || user.fullname || user.email}</strong></span>
+              <button onClick={() => {
+                localStorage.removeItem('user');
+                window.dispatchEvent(new Event('user:logout'));
+                // navigate to home
+                (window as any).location = '/';
+              }} style={{ background: 'transparent', border: 'none', color: 'inherit', cursor: 'pointer' }}>
+                Đăng xuất
+              </button>
+            </>
+          ) : (
+            <>
+              <Link to="/login" style={{ textDecoration: "none", color: "inherit", marginRight: 8 }}>
+                Đăng nhập
+              </Link>
+              <Link to="/register" style={{ textDecoration: "none", color: "inherit" }}>
+                Đăng ký
+              </Link>
+            </>
+          )}
+        </span>
 </div>
 
         </div>
@@ -89,12 +128,13 @@ const Header = () => {
           {/* MENU */}
           <nav className="menu">
             <ul>
-              <li
-                style={{ cursor: "pointer" }} // hiện con trỏ tay khi hover
-                onClick={() => navigate("/new-products")}
-              >
-                Sản phẩm mới
-              </li>
+             <li
+  className="highlight"
+  style={{ cursor: "pointer" }}
+  onClick={() => navigate("/new-products")}
+>
+  Sản phẩm mới
+</li>
               {/* <li className="has-dropdown">
                 <Link to="#">Danh mục sale</Link>
                 <ul className="dropdown">
@@ -109,8 +149,45 @@ const Header = () => {
                   </li>
                 </ul>
               </li> */}
+<li className="has-dropdown">
+  <Link to="#">Áo nam</Link>
+  <ul className="dropdown">
+    <li>
+      <Link to="/new-products?category=1">Áo khoác</Link>
+    </li>
+    <li>
+     <Link to="/new-products?category=2">Áo polo</Link>
+    </li>
+    <li>
+      <Link to="/new-products?category=3">Áo sơ mi</Link>
+    </li>
+    <li>
+      <Link to="/new-products?category=4">Áo thun</Link>
+    </li>
+    <li>
+      <Link to="/new-products?category=5">Áo len</Link>
+    </li>
+  </ul>
+</li>
 
-              <li className="has-dropdown">
+<li className="has-dropdown">
+  <Link to="#">Quần nam</Link>
+  <ul className="dropdown">
+    <li>
+      <Link to="/new-products?category=6">Quần kaki</Link>
+    </li>
+    <li>
+      <Link to="/new-products?category=7">Quần gió</Link>
+    </li>
+    <li>
+      <Link to="/new-products?category=8">Quần jean</Link>
+    </li>
+    <li>
+      <Link to="/new-products?category=9">Quần short</Link>
+    </li>
+  </ul>
+</li>
+              {/* <li className="has-dropdown">
                 <Link to="#">Áo nam</Link>
                 <ul className="dropdown">
                   <li>
@@ -147,7 +224,7 @@ const Header = () => {
                     <Link to="#">Quần short</Link>
                   </li>
                 </ul>
-              </li>
+              </li> */}
 
               <li>
                 <Link to="#">Phụ kiện</Link>

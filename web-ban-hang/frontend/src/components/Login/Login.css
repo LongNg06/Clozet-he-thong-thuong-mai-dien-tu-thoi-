@@ -1,42 +1,70 @@
+/* nền full màn hình */
 .login {
   height: 100vh;
   display: flex;
   justify-content: center;
   align-items: center;
-  background: #0f172a;
+  background: #f5f5f5;
 }
 
+/* form */
 .login form {
-  width: 300px;
-  padding: 20px;
-  background: #1e293b;
-  border-radius: 8px;
-  color: #fff;
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
+  width: 350px;
+  padding: 30px;
+  background: #fff;
+  border-radius: 10px;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
 }
 
-.login input,
-.login button {
+/* tiêu đề */
+.login h2 {
+  text-align: center;
+  margin-bottom: 20px;
+}
+
+/* input */
+.login input {
+  width: 100%;
   padding: 10px;
+  margin-bottom: 15px;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  outline: none;
+}
+
+/* focus */
+.login input:focus {
+  border-color: #333;
+}
+
+/* button */
+.login button {
+  width: 100%;
+  padding: 10px;
+  background: #000;
+  color: #fff;
   border: none;
   border-radius: 5px;
-}
-
-.login button {
-  background: #22c55e;
-  color: #fff;
   cursor: pointer;
 }
 
-.links {
-  display: flex;
-  justify-content: space-between;
+/* hover */
+.login button:hover {
+  background: #333;
+}
+
+/* link phụ */
+.login .extra {
+  margin-top: 10px;
+  text-align: center;
+}
+
+.login .extra a {
+  color: #000;
+  text-decoration: none;
   font-size: 14px;
 }
 
-.links a {
-  color: #38bdf8;
-  text-decoration: none;
+.login .extra a:hover {
+  text-decoration: underline;
 }

@@ -190,4 +190,61 @@ router.get("/category/:id", (req, res) => {
   });
 });
 
+// GET ONSALE PRODUCTS (products that have gia_khuyen_mai NOT NULL)
+router.get("/onsale", (req, res) => {
+  const limit = parseInt(req.query.limit, 10) || 10;
+  const sql = `
+    SELECT
+      sp.*,
+      COUNT(DISTINCT bt.id_mau) AS mau_sac,
+      COUNT(DISTINCT bt.id_kichco) AS kich_co,
+      MAX(anb.url_anh) AS hover_img
+    FROM sanpham sp
+    LEFT JOIN sanpham_bienthe bt
+      ON sp.id_sanpham = bt.id_sanpham
+    LEFT JOIN anh_sanpham_bienthe anb
+      ON anb.id_sanphambienthe = bt.id_sanphambienthe
+    WHERE sp.gia_khuyen_mai IS NOT NULL
+    GROUP BY sp.id_sanpham
+    LIMIT ?
+  `;
+
+  db.query(sql, [limit], (err, results) => {
+    if (err) {
+      console.error("SQL ERROR (onsale):", err);
+      return res.status(500).json({ message: "Server error" });
+    }
+    res.json(results);
+  });
+});
+
+// GET LOW-STOCK PRODUCTS (sort by minimum stock ascending)
+router.get("/lowstock", (req, res) => {
+  const limit = parseInt(req.query.limit, 10) || 20;
+  const sql = `
+    SELECT
+      sp.*,
+      COUNT(DISTINCT bt.id_mau) AS mau_sac,
+      COUNT(DISTINCT bt.id_kichco) AS kich_co,
+      MAX(anb.url_anh) AS hover_img,
+      MIN(bt.so_luong_ton) AS min_stock
+    FROM sanpham sp
+    LEFT JOIN sanpham_bienthe bt
+      ON sp.id_sanpham = bt.id_sanpham
+    LEFT JOIN anh_sanpham_bienthe anb
+      ON anb.id_sanphambienthe = bt.id_sanphambienthe
+    GROUP BY sp.id_sanpham
+    ORDER BY MIN(bt.so_luong_ton) IS NULL, MIN(bt.so_luong_ton) ASC
+    LIMIT ?
+  `;
+
+  db.query(sql, [limit], (err, results) => {
+    if (err) {
+      console.error("SQL ERROR (lowstock):", err);
+      return res.status(500).json({ message: "Server error" });
+    }
+    res.json(results);
+  });
+});
+
 module.exports = router;

@@ -81,6 +81,9 @@ const ProductCard = ({ product }: { product: Product }) => {
       });
   };
 
+  // ===== BUY NOW (quick purchase) =====
+  
+
   return (
     <div className="product-card">
 
@@ -116,20 +119,21 @@ const ProductCard = ({ product }: { product: Product }) => {
         {/* HOVER BUTTON */}
         {!isOutOfStock && (
           <div className="hover-overlay">
+            <div className="hover-row">
+              <button
+                className="add-cart-btn"
+                onClick={handleAddToCart}
+              >
+                🛒 Thêm vào giỏ
+              </button>
 
-            <button
-              className="add-cart-btn"
-              onClick={handleAddToCart}
-            >
-              🛒 Thêm vào giỏ
-            </button>
-
-            <button
-              className="view-btn"
-              onClick={handleView}
-            >
-              👁
-            </button>
+              <button
+                className="view-btn"
+                onClick={handleView}
+              >
+                👁
+              </button>
+            </div>
 
           </div>
         )}
