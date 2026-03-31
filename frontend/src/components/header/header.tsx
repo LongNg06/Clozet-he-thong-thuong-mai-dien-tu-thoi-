@@ -6,11 +6,21 @@ import "./header.css";
 const Header = () => {
   const [showBanner, setShowBanner] = useState(true);
 
-  const user = JSON.parse(localStorage.getItem("user") || "null");
+    type User = {
+  id: number;
+  name: string;
+  email: string;
+  role: string;
+};
+
+const [user, setUser] = useState<User | null>(() => {
+  const storedUser = localStorage.getItem("user");
+  return storedUser ? JSON.parse(storedUser) : null;
+});
 
   const handleLogout = () => {
-    localStorage.removeItem("user");
-    window.location.reload();
+  localStorage.removeItem("user");
+  setUser(null);
 };
   return (
     <>
@@ -106,13 +116,13 @@ const Header = () => {
               <li>
                 {user ? (
                   <>
-                    <span>Xin chào, {user.name}</span>
+                    <span>👋 {user.name}</span>
 
                     {user.role === "admin" && (
                       <Link to="/admin">Admin</Link>
                     )}
 
-                    <button onClick={handleLogout}>Logout</button>
+                    <button onClick={handleLogout}>Đăng xuất</button>
                   </>
                 ) : (
                   <Link to="/login">Đăng nhập</Link>

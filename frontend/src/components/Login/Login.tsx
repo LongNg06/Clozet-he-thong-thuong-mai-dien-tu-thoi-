@@ -7,35 +7,62 @@ function Login() {
   const [password, setPassword] = useState("");
   const navigate = useNavigate();
 
-  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+  e.preventDefault();
 
-    // 👉 Demo tạm (sau này gọi API)
-    if (email === "admin@gmail.com" && password === "123456") {
-      localStorage.setItem(
-        "user",
-        JSON.stringify({ name: "Admin", role: "admin" })
-      );
-      navigate("/admin");
-    } 
-    else if (email === "user@gmail.com" && password === "123456") {
-      localStorage.setItem(
-        "user",
-        JSON.stringify({ name: "User", role: "user" })
-      );
-      navigate("/");
-    } 
-    else {
-      alert("Sai tài khoản hoặc mật khẩu");
-    }
-  };
+  const res = await fetch("http://localhost:5000/login", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify({ email, password })
+  });
+
+  const data = await res.json();
+
+  if (!res.ok) {
+    alert(data.message);
+    return;
+  }
+
+  localStorage.setItem("user", JSON.stringify(data.user));
+
+  if (data.user.role === "admin") {
+    navigate("/admin");
+  } else {
+    navigate("/");
+  }
+};
 
   return (
-    <form onSubmit={handleSubmit}>
-      <input onChange={(e) => setEmail(e.target.value)} />
-      <input type="password" onChange={(e) => setPassword(e.target.value)} />
-      <button>Login</button>
-    </form>
+    <div className="login">
+  <form onSubmit={handleSubmit}>
+    <h2>Đăng nhập</h2>
+
+    <input
+      type="email"
+      placeholder="Email"
+      onChange={(e) => setEmail(e.target.value)}
+    />
+
+    <input
+      type="password"
+      placeholder="Mật khẩu"
+      onChange={(e) => setPassword(e.target.value)}
+    />
+
+    <button type="submit">Đăng nhập</button>
+
+    <div className="extra">
+      <p>
+        <a href="#">Quên mật khẩu?</a>
+      </p>
+      <p>
+        Chưa có tài khoản? <a href="/signup">Đăng ký</a>
+      </p>
+    </div>
+  </form>
+</div>
   );
 }
 
