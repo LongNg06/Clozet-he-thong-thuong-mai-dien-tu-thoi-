@@ -35,33 +35,34 @@ function Login() {
 };
 
   return (
-    <div className="login">
-  <form onSubmit={handleSubmit}>
-    <h2>Đăng nhập</h2>
+  <div className="login">
+    <div className="bg-fashion"></div>
+      <form onSubmit={handleSubmit}>
+        <h2>Đăng nhập</h2>
 
-    <input
-      type="email"
-      placeholder="Email"
-      onChange={(e) => setEmail(e.target.value)}
-    />
+        <input
+          type="email"
+          placeholder="Email"
+          onChange={(e) => setEmail(e.target.value)}
+        />
 
-    <input
-      type="password"
-      placeholder="Mật khẩu"
-      onChange={(e) => setPassword(e.target.value)}
-    />
+        <input
+          type="password"
+          placeholder="Mật khẩu"
+          onChange={(e) => setPassword(e.target.value)}
+        />
 
-    <button type="submit">Đăng nhập</button>
+        <button type="submit">Đăng nhập</button>
 
-    <div className="extra">
-      <p>
-        <a href="#">Quên mật khẩu?</a>
-      </p>
-      <p>
-        Chưa có tài khoản? <Link to="/register">Đăng ký</Link>
-      </p>
-    </div>
-  </form>
+        <div className="extra">
+          <p>
+            <Link to="/forgot-password">Quên mật khẩu?</Link>
+          </p>
+          <p>
+            Chưa có tài khoản? <Link to="/register">Đăng ký</Link>
+          </p>
+        </div>
+      </form>
 </div>
   );
 }

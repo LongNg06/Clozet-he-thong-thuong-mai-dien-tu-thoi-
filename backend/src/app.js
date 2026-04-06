@@ -1,5 +1,6 @@
 const express = require("express");
 const cors = require("cors");
+const crypto = require("crypto");
 
 const app = express();
 
@@ -72,6 +73,85 @@ app.post("/register", (req, res) => {
       if (err) return res.status(500).json({ message: "Lỗi server" });
 
       res.json({ message: "Đăng ký thành công" });
+    });
+  });
+});
+
+// forgot password
+
+app.post("/forgot-password", (req, res) => {
+  const { email } = req.body;
+
+  if (!email) {
+    return res.status(400).json({ message: "Thiếu email" });
+  }
+
+  const token = crypto.randomBytes(32).toString("hex");
+  const expire = new Date(Date.now() + 15 * 60 * 1000);
+
+  const sql = `
+    UPDATE kh 
+    SET reset_token=?, reset_token_expire=? 
+    WHERE email=?
+  `;
+
+  db.query(sql, [token, expire, email], (err, result) => {
+    if (err) {
+      console.log(err);
+      return res.status(500).json({ message: "Lỗi server" });
+    }
+
+    if (result.affectedRows === 0) {
+      return res.status(404).json({ message: "Email không tồn tại" });
+    }
+
+    const link = `http://localhost:5000/reset-password/${token}`;
+
+    console.log("========== RESET PASSWORD ==========");
+    console.log(link);
+    console.log("====================================");
+
+    return res.json({
+      message: "Đã gửi link reset (check terminal backend)",
+    });
+  });
+});
+
+// RESET MẬT KHẨU
+app.post("/forgot-password", (req, res) => {
+  const { email } = req.body;
+
+  if (!email) {
+    return res.status(400).json({ message: "Thiếu email" });
+  }
+
+  const token = crypto.randomBytes(32).toString("hex");
+  const expire = new Date(Date.now() + 15 * 60 * 1000);
+
+  const sql = `
+    UPDATE kh 
+    SET reset_token=?, reset_token_expire=? 
+    WHERE email=?
+  `;
+
+  db.query(sql, [token, expire, email], (err, result) => {
+    if (err) {
+      console.log(err);
+      return res.status(500).json({ message: "Lỗi server" });
+    }
+
+    if (result.affectedRows === 0) {
+      return res.status(404).json({ message: "Email không tồn tại" });
+    }
+
+    const link = `http://localhost:5000/reset-password/${token}`;
+
+    console.log("========== RESET PASSWORD ==========");
+    console.log(link);
+    console.log("====================================");
+
+    return res.json({
+      message: "Đã gửi link reset (check terminal backend)",
     });
   });
 });

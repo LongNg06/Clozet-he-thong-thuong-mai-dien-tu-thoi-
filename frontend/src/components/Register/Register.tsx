@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
-import "./register.css";
+import "./Register.css";
 
 const Register = () => {
   const [name, setName] = useState("");
@@ -31,6 +31,7 @@ const Register = () => {
 
   return (
     <div className="register-container">
+      <div className="bg-fashion"></div>
       <form onSubmit={handleRegister} className="register-form">
         <h2>Đăng ký</h2>
 

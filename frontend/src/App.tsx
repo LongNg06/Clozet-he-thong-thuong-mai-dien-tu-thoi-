@@ -28,6 +28,8 @@ import CategorySection from "./components/Category/CategorySection";
 import Home from "./pages/home/home";
 import Login from "./components/Login/Login";
 import Register from "./components/Register/Register";
+import ResetPassword from "./components/ResetPassword/ResetPassword";
+import ForgotPassword from "./components/ForgotPassword/ForgotPassword";
 
 function App() {
   return (
@@ -49,6 +51,8 @@ function App() {
       {/* Login riêng */}
       <Route path="/login" element={<Login />} />
       <Route path="/register" element={<Register />} />
+      <Route path="/forgot-password" element={<ForgotPassword />} />
+      <Route path="/reset-password/:token" element={<ResetPassword />} /> 
     </Routes>
   );
 }
