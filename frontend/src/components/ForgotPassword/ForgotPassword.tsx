@@ -1,35 +1,38 @@
 import { useState } from "react";
+import "./ForgotPassword.css";
 
 const ForgotPassword = () => {
   const [email, setEmail] = useState("");
 
-  const handleSubmit = async () => {
-    try {
-      const res = await fetch("http://localhost:5000/forgot-password", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ email }),
-      });
-
-      const data = await res.json();
-      alert(data.message);
-    } catch (err) {
-      console.error(err);
-      alert("Lỗi kết nối server");
+  const handleSubmit = () => {
+    if (!email) {
+      alert("Vui lòng nhập email");
+      return;
     }
+
+    alert("Chức năng đang phát triển 🚧");
   };
 
   return (
-    <div>
-      <h2>Quên mật khẩu</h2>
-      <input
-        type="email"
-        placeholder="Nhập email"
-        onChange={(e) => setEmail(e.target.value)}
-      />
-      <button onClick={handleSubmit}>Gửi</button>
+    <div className="forgot-container">
+      <div className="bg-fashion"></div>
+
+      <div className="forgot-form">
+        <h2>Quên mật khẩu</h2>
+
+        <input
+          type="email"
+          placeholder="Nhập email"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+        />
+
+        <button onClick={handleSubmit}>Gửi</button>
+
+        <p>
+          Quay lại <a href="/login">Đăng nhập</a>
+        </p>
+      </div>
     </div>
   );
 };
