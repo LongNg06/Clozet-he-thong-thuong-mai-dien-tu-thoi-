@@ -1,6 +1,6 @@
 "use client";
 import { useLocation, useNavigate } from "react-router-dom";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import ProductCard from "../../components/Product/ProductCart";
 import "./newProduct.css";
 
@@ -107,6 +107,7 @@ const NewProduct = () => {
 
       const data = await res.json();
 
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const mapped = (data || []).map((p: any) => ({
         ...p,
         anh:
@@ -119,23 +120,23 @@ const NewProduct = () => {
           if (typeof p.kich_co === "string") {
             try {
               const arr = JSON.parse(p.kich_co);
-              if (Array.isArray(arr)) return arr.map((x: any) => normalizeSize(String(x))).filter(Boolean);
+              if (Array.isArray(arr)) return arr.map((x: unknown) => normalizeSize(String(x))).filter(Boolean);
             } catch {
               return p.kich_co.split(",").map((s: string) => s.trim()).filter(Boolean).map((s: string) => normalizeSize(s));
             }
           }
           if (Array.isArray(p.kich_co)) {
             return p.kich_co
-              .map((item: any) => {
+              .map((item: unknown) => {
                 if (typeof item === "string") return normalizeSize(item);
-                if (item && typeof item === "object") return normalizeSize(item.ten_kichco ?? item.ten ?? item.name ?? "");
+                if (item && typeof item === "object") return normalizeSize((item as Record<string, string>).ten_kichco ?? (item as Record<string, string>).ten ?? (item as Record<string, string>).name ?? "");
                 return "";
               })
               .filter(Boolean);
           }
           if (typeof p.kich_co === "object") {
             const vals = Object.values(p.kich_co);
-            return vals.map((v: any) => normalizeSize(String(v))).filter(Boolean);
+            return vals.map((v: unknown) => normalizeSize(String(v))).filter(Boolean);
           }
           return [];
         })(),
@@ -144,16 +145,16 @@ const NewProduct = () => {
           if (typeof p.mau_sac === "string") {
             try {
               const arr = JSON.parse(p.mau_sac);
-              if (Array.isArray(arr)) return arr.map((x: any) => String(x).trim()).filter(Boolean);
+              if (Array.isArray(arr)) return arr.map((x: unknown) => String(x).trim()).filter(Boolean);
             } catch {
               return p.mau_sac.split(",").map((s: string) => s.trim()).filter(Boolean);
             }
           }
           if (Array.isArray(p.mau_sac)) {
             return p.mau_sac
-              .map((item: any) => {
+              .map((item: unknown) => {
                 if (typeof item === "string") return item.trim();
-                if (item && typeof item === "object") return String(item.ten_mau ?? item.ten ?? item.name ?? "").trim();
+                if (item && typeof item === "object") return String((item as Record<string, string>).ten_mau ?? (item as Record<string, string>).ten ?? (item as Record<string, string>).name ?? "").trim();
                 return "";
               })
               .filter(Boolean);
@@ -199,6 +200,7 @@ const NewProduct = () => {
           console.error("Failed to fetch categories", res.status);
         } else {
           const data = await res.json();
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
           const normalized = (data || []).map((c: any) => ({
             id_danhmuc: c.id_danhmuc ?? c.id ?? c._id,
             ten_danhmuc: c.ten_danhmuc ?? c.name ?? c.ten ?? "",
@@ -227,7 +229,7 @@ const NewProduct = () => {
   }, []);
 
   // ===== SORT HELPER =====
-  const sortProducts = (list: Product[]) => {
+  const sortProducts = useCallback((list: Product[]) => {
     const sorted = [...list];
     const getPrice = (p: Product) => Number(p.gia_khuyen_mai ?? p.gia_goc ?? 0);
 
@@ -265,7 +267,7 @@ const NewProduct = () => {
         break;
     }
     return sorted;
-  };
+  }, [sortBy]);
 
   // ===== FILTER (PRICE + SIZE + COLOR) + SORT =====
   useEffect(() => {
@@ -287,7 +289,7 @@ const NewProduct = () => {
     temp = sortProducts(temp);
     setFiltered(temp);
     setCurrentPage(1);
-  }, [price, selectedSize, selectedColor, products, sortBy]);
+  }, [price, selectedSize, selectedColor, products, sortProducts]);
 
   const totalPages = Math.ceil(filtered.length / ITEMS_PER_PAGE);
   const paginatedProducts = filtered.slice(

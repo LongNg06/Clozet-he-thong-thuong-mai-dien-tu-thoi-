@@ -5,11 +5,11 @@ import "./style.css";
 interface Product {
   id_sanpham: number;
   ten_sanpham: string;
-  gia_goc: number | string;
+  gia_goc: number | string | null;
   gia_khuyen_mai?: number | string | null;
   anh: string;
-  mau_sac?: number | string;
-  kich_co?: number | string;
+  mau_sac?: string[] | number | string;
+  kich_co?: string[] | number | string;
   trang_thai?: number;
   hover_img?: string;
 }
@@ -67,7 +67,7 @@ const ProductCard = ({ product }: { product: Product }) => {
       const sRes = await fetch(`http://localhost:5000/products/stock/${product.id_sanpham}`);
       const sData = await sRes.json();
       if (sData.so_luong_ton <= 0) { alert("Sản phẩm đã hết hàng!"); return; }
-    } catch {}
+    } catch { /* stock check failed, proceed */ }
 
     const raw = localStorage.getItem('user');
     const isLoggedIn = !!raw;
@@ -94,7 +94,7 @@ const ProductCard = ({ product }: { product: Product }) => {
       // Guest: save to localStorage
       const cartRaw = localStorage.getItem('cartItems');
       const cart = cartRaw ? JSON.parse(cartRaw) : [];
-      const existing = cart.find((it: any) => it.id_sanpham === product.id_sanpham);
+      const existing = cart.find((it: { id_sanpham: number }) => it.id_sanpham === product.id_sanpham);
       if (existing) {
         existing.quantity += 1;
       } else {

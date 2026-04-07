@@ -1,5 +1,5 @@
-import React, { useEffect, useState } from "react";
-import { Link, useLocation, useNavigate } from "react-router-dom";
+import { useEffect, useState } from "react";
+import { Link, useLocation } from "react-router-dom";
 import "./style.css";
 
 const API = (import.meta.env && (import.meta.env.VITE_API_URL as string)) || "http://localhost:5000";
@@ -27,18 +27,13 @@ type LowStock = { id_sanpham: number; ten_sanpham: string; anh: string; tong_ton
 
 /* ====== SIDEBAR ====== */
 function Sidebar({ current }: { current: string }) {
-  const nav = useNavigate();
   const links = [
     { key: "overview", to: "/admin", icon: "📊", label: "Tổng quan" },
     { key: "products", to: "/admin/products", icon: "📦", label: "Sản phẩm" },
     { key: "categories", to: "/admin/categories", icon: "🗂️", label: "Danh mục" },
     { key: "orders", to: "/admin/orders", icon: "🧾", label: "Đơn hàng" },
   ];
-  const handleLogout = () => {
-    localStorage.removeItem('user');
-    window.dispatchEvent(new Event('user:logout'));
-    nav('/');
-  };
+
   return (
     <aside className="admin-sidebar">
       <div className="sidebar-logo">CLOZET</div>
