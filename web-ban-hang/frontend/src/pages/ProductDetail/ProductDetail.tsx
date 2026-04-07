@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import "./ProductDetail.css";
 
@@ -11,6 +11,11 @@ interface Product {
   ten_thuonghieu: string;
   anh?: string;
   anh_bienthe?: string;
+  id_mau?: number;
+  ten_mau?: string;
+  id_kichco?: number;
+  ten_kichco?: string;
+  so_luong_ton?: number;
 }
 
 export default function ProductDetail() {
@@ -19,11 +24,25 @@ export default function ProductDetail() {
 
   const [product, setProduct] = useState<Product | null>(null);
   const [qty, setQty] = useState<number>(1);
+  const [stock, setStock] = useState<number | null>(null);
 
   const [mainImg, setMainImg] = useState<string>("");
   const [gallery, setGallery] = useState<string[]>([]);
 
+  // Variant states
+  const [sizes, setSizes] = useState<{ id: number; name: string }[]>([]);
+  const [colors, setColors] = useState<{ id: number; name: string }[]>([]);
+  const [selectedSize, setSelectedSize] = useState<number | null>(null);
+  const [selectedColor, setSelectedColor] = useState<number | null>(null);
+  const [activeTab, setActiveTab] = useState<string>("mota");
+
   useEffect(() => {
+    // Fetch fresh stock data
+    fetch(`http://localhost:5000/products/stock/${id}`)
+      .then(r => r.json())
+      .then(data => { if (data.so_luong_ton !== undefined) setStock(data.so_luong_ton); })
+      .catch(() => {});
+
     fetch(`http://localhost:5000/products/${id}`)
       .then(res => res.json())
       .then((data: Product[] | Product) => {
@@ -31,6 +50,7 @@ export default function ProductDetail() {
           const base = data[0];
           setProduct(base);
 
+          // Build gallery
           const imgs: string[] = [];
           if (base.anh) {
             const url = base.anh.startsWith("http")
@@ -46,9 +66,26 @@ export default function ProductDetail() {
               if (!imgs.includes(url)) imgs.push(url);
             }
           });
-
           setGallery(imgs);
           setMainImg(imgs[0] || "");
+
+          // Extract unique sizes
+          const sizeMap = new Map<number, string>();
+          data.forEach((r: Product) => {
+            if (r.id_kichco && r.ten_kichco) {
+              sizeMap.set(r.id_kichco, r.ten_kichco);
+            }
+          });
+          setSizes(Array.from(sizeMap, ([id, name]) => ({ id, name })));
+
+          // Extract unique colors
+          const colorMap = new Map<number, string>();
+          data.forEach((r: Product) => {
+            if (r.id_mau && r.ten_mau) {
+              colorMap.set(r.id_mau, r.ten_mau);
+            }
+          });
+          setColors(Array.from(colorMap, ([id, name]) => ({ id, name })));
         } else {
           const p = data as Product;
           setProduct(p);
@@ -71,6 +108,7 @@ export default function ProductDetail() {
   const salePercent = hasDiscount ? Math.round(((giaGoc - giaKM) / giaGoc) * 100) : 0;
 
   return (
+    <>
     <div className="product-detail">
       {/* LEFT IMAGE */}
       <div className="product-image">
@@ -102,69 +140,159 @@ export default function ProductDetail() {
         <h1>{product.ten_sanpham}</h1>
 
         <div className="product-meta">
-          Mã sản phẩm: <b>SP{id}</b> | Tình trạng:
-          {product.trang_thai ? " Còn hàng" : " Hết hàng"} | Thương hiệu:
-          <b> {product.ten_thuonghieu}</b>
+          Mã sản phẩm: <b>SP{id}</b>
+          <span className="meta-sep">|</span>
+          Tình trạng: <b>{stock !== null ? (stock > 0 ? `Còn hàng (${stock})` : "Hết hàng") : (product.trang_thai ? "Còn hàng" : "Hết hàng")}</b>
+          <span className="meta-sep">|</span>
+          Thương hiệu: <b>{product.ten_thuonghieu}</b>
         </div>
 
         {/* PRICE */}
-        <div className="price-box">
+        <div className="price-row">
+          <span className="label">Giá:</span>
           <span className="price-new">{finalPrice.toLocaleString("vi-VN")}đ</span>
           {hasDiscount && (
             <span className="price-old">{giaGoc.toLocaleString("vi-VN")}đ</span>
           )}
-          {hasDiscount && <span className="sale">-{salePercent}%</span>}
+          {hasDiscount && <span className="sale-badge">-{salePercent}%</span>}
         </div>
 
+        {/* COLOR SELECTOR */}
+        {colors.length > 0 && (
+          <div className="variant-row">
+            <span className="label">Màu sắc:</span>
+            <div className="variant-options">
+              {colors.map((c) => (
+                <button
+                  key={c.id}
+                  className={`variant-btn ${selectedColor === c.id ? "active" : ""}`}
+                  onClick={() => setSelectedColor(selectedColor === c.id ? null : c.id)}
+                >
+                  {c.name}
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* SIZE SELECTOR */}
+        {sizes.length > 0 && (
+          <div className="variant-row">
+            <span className="label">Kích thước:</span>
+            <div className="variant-options">
+              {sizes.map((s) => (
+                <button
+                  key={s.id}
+                  className={`variant-btn ${selectedSize === s.id ? "active" : ""}`}
+                  onClick={() => setSelectedSize(selectedSize === s.id ? null : s.id)}
+                >
+                  {s.name}
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
+
         {/* QUANTITY */}
-        <div className="quantity">
-          <p>Số lượng:</p>
-          <button onClick={() => setQty(qty > 1 ? qty - 1 : 1)}>-</button>
-          <span>{qty}</span>
-          <button onClick={() => setQty(qty + 1)}>+</button>
+        <div className="variant-row">
+          <span className="label">Số lượng:</span>
+          <div className="qty-control">
+            <button className="qty-btn" onClick={() => setQty(qty > 1 ? qty - 1 : 1)}>−</button>
+            <span className="qty-value">{qty}</span>
+            <button className="qty-btn" onClick={() => { const max = stock !== null ? stock : 999; setQty(qty < max ? qty + 1 : qty); }}>+</button>
+          </div>
         </div>
 
         {/* BUTTONS */}
         <div className="product-buttons">
           <button
             className="add-cart"
+            disabled={stock !== null && stock <= 0}
             onClick={async () => {
+              // Re-check stock before adding
               try {
-                await fetch("http://localhost:5000/cart/add", {
+                const sRes = await fetch(`http://localhost:5000/products/stock/${product.id_sanpham}`);
+                const sData = await sRes.json();
+                if (sData.so_luong_ton !== undefined) setStock(sData.so_luong_ton);
+                if (sData.so_luong_ton <= 0) { alert("Sản phẩm đã hết hàng!"); return; }
+                if (qty > sData.so_luong_ton) { alert(`Chỉ còn ${sData.so_luong_ton} sản phẩm trong kho!`); return; }
+              } catch {}
+
+              const raw = localStorage.getItem('user');
+              const isLoggedIn = !!raw;
+              if (isLoggedIn) {
+                const r = await fetch("http://localhost:5000/cart/add", {
                   method: "POST",
                   headers: { "Content-Type": "application/json" },
-                  body: JSON.stringify({
-                    id_sanpham: product.id_sanpham,
-                    quantity: qty,
-                  }),
+                  body: JSON.stringify({ id_sanpham: product.id_sanpham, quantity: qty }),
                 });
+                if (!r.ok) {
+                  const err = await r.json();
+                  alert(err.message || "Lỗi thêm giỏ hàng");
+                  return;
+                }
                 alert("Đã thêm vào giỏ hàng");
-              } catch (e) {
-                console.error(e);
-                alert("Lỗi thêm giỏ hàng");
+                window.dispatchEvent(new Event("cartUpdated"));
+              } else {
+                const cartRaw = localStorage.getItem('cartItems');
+                const cart = cartRaw ? JSON.parse(cartRaw) : [];
+                const existing = cart.find((it: any) => it.id_sanpham === product.id_sanpham);
+                if (existing) { existing.quantity += qty; } else {
+                  cart.push({ id: product.id_sanpham, id_sanpham: product.id_sanpham, quantity: qty,
+                    ten_sanpham: product.ten_sanpham, anh: product.anh,
+                    gia_goc: product.gia_goc, gia_khuyen_mai: product.gia_khuyen_mai });
+                }
+                localStorage.setItem('cartItems', JSON.stringify(cart));
+                alert("Đã thêm vào giỏ hàng");
+                window.dispatchEvent(new Event("cartUpdated"));
               }
             }}
           >
-            THÊM VÀO GIỎ
+            {stock !== null && stock <= 0 ? "HẾT HÀNG" : "THÊM VÀO GIỎ"}
           </button>
 
           <button
             className="buy-now"
+            disabled={stock !== null && stock <= 0}
             onClick={async () => {
+              // Re-check stock before buying
               try {
-                await fetch("http://localhost:5000/cart/add", {
+                const sRes = await fetch(`http://localhost:5000/products/stock/${product.id_sanpham}`);
+                const sData = await sRes.json();
+                if (sData.so_luong_ton !== undefined) setStock(sData.so_luong_ton);
+                if (sData.so_luong_ton <= 0) { alert("Sản phẩm đã hết hàng!"); return; }
+                if (qty > sData.so_luong_ton) { alert(`Chỉ còn ${sData.so_luong_ton} sản phẩm trong kho!`); return; }
+              } catch {}
+
+              const raw = localStorage.getItem('user');
+              const isLoggedIn = !!raw;
+              if (isLoggedIn) {
+                const r = await fetch("http://localhost:5000/cart/add", {
                   method: "POST",
                   headers: { "Content-Type": "application/json" },
-                  body: JSON.stringify({
-                    id_sanpham: product.id_sanpham,
-                    quantity: qty,
-                  }),
+                  body: JSON.stringify({ id_sanpham: product.id_sanpham, quantity: qty }),
                 });
+                if (!r.ok) {
+                  const err = await r.json();
+                  alert(err.message || "Lỗi mua ngay");
+                  return;
+                }
+                window.dispatchEvent(new Event("cartUpdated"));
                 navigate("/checkout");
                 setTimeout(() => window.scrollTo(0, 0), 0);
-              } catch (e) {
-                console.error(e);
-                alert("Lỗi mua ngay");
+              } else {
+                const cartRaw = localStorage.getItem('cartItems');
+                const cart = cartRaw ? JSON.parse(cartRaw) : [];
+                const existing = cart.find((it: any) => it.id_sanpham === product.id_sanpham);
+                if (existing) { existing.quantity += qty; } else {
+                  cart.push({ id: product.id_sanpham, id_sanpham: product.id_sanpham, quantity: qty,
+                    ten_sanpham: product.ten_sanpham, anh: product.anh,
+                    gia_goc: product.gia_goc, gia_khuyen_mai: product.gia_khuyen_mai });
+                }
+                localStorage.setItem('cartItems', JSON.stringify(cart));
+                window.dispatchEvent(new Event("cartUpdated"));
+                navigate("/checkout");
+                setTimeout(() => window.scrollTo(0, 0), 0);
               }
             }}
           >
@@ -172,86 +300,137 @@ export default function ProductDetail() {
           </button>
         </div>
 
+        {/* CTA */}
+        <button className="cta-offer">CLICK VÀO ĐÂY ĐỂ NHẬN ƯU ĐÃI</button>
 
-        
-{/* POLICY HIGHLIGHTS */}
-<div className="product-policies">
-  <div className="policy-item">
-    <div className="icon">🚚</div>
-    <div className="policy-text-short">
-      <div className="policy-title">Miễn phí giao hàng</div>
-      <div className="policy-sub">cho đơn hàng từ <b>500K</b></div>
+        {/* SHARE */}
+        <div className="share-row">
+          <span>Chia sẻ:</span>
+          <div className="share-icons">
+            <span className="share-icon fb">f</span>
+            <span className="share-icon zalo">Z</span>
+            <span className="share-icon tw">𝕏</span>
+            <span className="share-icon pin">P</span>
+            <span className="share-icon link">🔗</span>
+          </div>
+        </div>
+
+        {/* POLICY GRID */}
+        <div className="policy-grid">
+          <div className="policy-cell">
+            <span className="policy-icon">🚚</span>
+            <span>Miễn phí giao hàng cho đơn hàng từ <b>500K</b></span>
+          </div>
+          <div className="policy-cell">
+            <span className="policy-icon">✅</span>
+            <span>Hàng phân phối chính hãng 100%</span>
+          </div>
+          <div className="policy-cell">
+            <span className="policy-icon">📞</span>
+            <span>TỔNG ĐÀI 24/7: <b>0964942121</b></span>
+          </div>
+          <div className="policy-cell">
+            <span className="policy-icon">🔄</span>
+            <span>ĐỔI SẢN PHẨM DỄ DÀNG (Trong vòng 7 ngày khi còn nguyên tem mác)</span>
+          </div>
+          <div className="policy-cell">
+            <span className="policy-icon">📦</span>
+            <span>Kiểm tra, thanh toán khi nhận hàng COD</span>
+          </div>
+          <div className="policy-cell">
+            <span className="policy-icon">🛠️</span>
+            <span>Hỗ trợ bảo hành, đổi sản phẩm tại tất cả store TORANO</span>
+          </div>
+        </div>
+
+      </div>
     </div>
-  </div>
 
-  <div className="policy-item">
-    <div className="icon">✅</div>
-    <div className="policy-text-short">
-      <div className="policy-title">Phân phối chính hãng</div>
-      <div className="policy-sub">Hàng phân phối chính hãng 100%</div>
+    {/* === TABS: Mô tả / Chính sách / Câu hỏi === */}
+    <div className="detail-tabs">
+      <div className="tab-headers">
+        <button className={`tab-btn ${activeTab === "mota" ? "active" : ""}`} onClick={() => setActiveTab("mota")}>Mô tả sản phẩm</button>
+        <button className={`tab-btn ${activeTab === "doitra" ? "active" : ""}`} onClick={() => setActiveTab("doitra")}>Chính sách đổi trả</button>
+        <button className={`tab-btn ${activeTab === "faq" ? "active" : ""}`} onClick={() => setActiveTab("faq")}>Câu hỏi thường gặp</button>
+      </div>
+
+      <div className="tab-content">
+        {activeTab === "mota" && (
+          <div className="tab-panel">
+            <h3>Giới thiệu sản phẩm</h3>
+            <p>Sản phẩm <b>{product.ten_sanpham}</b> được thiết kế với phong cách hiện đại, trẻ trung, phù hợp cho nhiều dịp khác nhau từ đi làm, đi chơi đến các buổi hẹn hò. Chất liệu cao cấp mang đến cảm giác thoải mái, dễ chịu khi mặc suốt cả ngày.</p>
+            <h4>Đặc điểm nổi bật</h4>
+            <ul>
+              <li>Chất liệu vải cao cấp, thoáng mát, thấm hút mồ hôi tốt</li>
+              <li>Form dáng chuẩn, tôn dáng người mặc</li>
+              <li>Đường may tỉ mỉ, chắc chắn, bền đẹp theo thời gian</li>
+              <li>Màu sắc bền, không phai sau nhiều lần giặt</li>
+              <li>Dễ phối đồ với nhiều phong cách khác nhau</li>
+            </ul>
+            <h4>Hướng dẫn bảo quản</h4>
+            <ul>
+              <li>Giặt máy ở chế độ nhẹ, nhiệt độ dưới 40°C</li>
+              <li>Không sử dụng chất tẩy mạnh</li>
+              <li>Phơi trong bóng râm, tránh ánh nắng trực tiếp</li>
+              <li>Ủi ở nhiệt độ thấp nếu cần</li>
+            </ul>
+          </div>
+        )}
+
+        {activeTab === "doitra" && (
+          <div className="tab-panel">
+            <h3>Chính sách đổi trả sản phẩm</h3>
+            <h4>1. Điều kiện đổi trả</h4>
+            <ul>
+              <li>Sản phẩm được đổi trong vòng <b>7 ngày</b> kể từ ngày nhận hàng</li>
+              <li>Sản phẩm còn nguyên tem, mác, chưa qua sử dụng hoặc giặt là</li>
+              <li>Còn đầy đủ hóa đơn mua hàng hoặc phiếu giao hàng</li>
+              <li>Sản phẩm không bị dơ bẩn, hư hỏng do tác nhân bên ngoài</li>
+            </ul>
+            <h4>2. Các trường hợp được đổi</h4>
+            <ul>
+              <li>Sản phẩm bị lỗi từ nhà sản xuất (đường may, vải bị lỗi...)</li>
+              <li>Giao sai sản phẩm, sai size, sai màu so với đơn hàng</li>
+              <li>Sản phẩm nguyên giá: được đổi 1 lần sang sản phẩm có giá trị tương đương hoặc cao hơn</li>
+              <li>Sản phẩm khuyến mại (giảm dưới 50%): được đổi size/màu cùng mã</li>
+            </ul>
+            <h4>3. Cách thực hiện đổi trả</h4>
+            <ul>
+              <li>Đổi trực tiếp tại hệ thống cửa hàng TORANO trên toàn quốc</li>
+              <li>Đổi qua đường bưu điện: liên hệ Tổng đài <b>0964942121</b> để được hướng dẫn</li>
+              <li>Phí ship đổi trả do khách hàng chi trả (trừ trường hợp lỗi từ TORANO)</li>
+            </ul>
+            <p><i>Lưu ý: Sản phẩm đồ lót và phụ kiện không áp dụng chính sách đổi trả.</i></p>
+          </div>
+        )}
+
+        {activeTab === "faq" && (
+          <div className="tab-panel">
+            <h3>Câu hỏi thường gặp</h3>
+            <div className="faq-item">
+              <h4>Tôi có thể đặt hàng online và nhận tại cửa hàng không?</h4>
+              <p>Hiện tại TORANO hỗ trợ giao hàng tận nơi trên toàn quốc. Bạn cũng có thể đến trực tiếp cửa hàng gần nhất để mua sắm.</p>
+            </div>
+            <div className="faq-item">
+              <h4>Thời gian giao hàng mất bao lâu?</h4>
+              <p>Nội thành TP.HCM & Hà Nội: 1-2 ngày. Các tỉnh thành khác: 3-5 ngày làm việc. Miễn phí ship cho đơn từ 500K.</p>
+            </div>
+            <div className="faq-item">
+              <h4>Làm sao để chọn đúng size?</h4>
+              <p>Bạn có thể tham khảo bảng size trên từng sản phẩm hoặc liên hệ Tổng đài 0964942121 để được tư vấn size phù hợp với số đo của bạn.</p>
+            </div>
+            <div className="faq-item">
+              <h4>TORANO có chương trình khách hàng thân thiết không?</h4>
+              <p>Có! Khách hàng tích lũy điểm qua mỗi đơn hàng để nhận ưu đãi giảm giá, quà tặng và quyền truy cập sớm các bộ sưu tập mới.</p>
+            </div>
+            <div className="faq-item">
+              <h4>Tôi muốn mua số lượng lớn (đồng phục, quà tặng) thì liên hệ ở đâu?</h4>
+              <p>Vui lòng liên hệ Hotline <b>0964942121</b> hoặc email để được báo giá riêng cho đơn hàng số lượng lớn.</p>
+            </div>
+          </div>
+        )}
+      </div>
     </div>
-  </div>
-
-  <div className="policy-item">
-    <div className="icon">📞</div>
-    <div className="policy-text-short">
-      <div className="policy-title">TỔNG ĐÀI 24/7</div>
-      <div className="policy-sub">0964942121</div>
-    </div>
-  </div>
-
-  <div className="policy-item">
-    <div className="icon">🔄</div>
-    <div className="policy-text-short">
-      <div className="policy-title">Đổi sản phẩm dễ dàng</div>
-      <div className="policy-sub">Trong 7 ngày khi còn nguyên tem mác</div>
-    </div>
-  </div>
-
-  <div className="policy-item">
-    <div className="icon">📦</div>
-    <div className="policy-text-short">
-      <div className="policy-title">Kiểm tra & COD</div>
-      <div className="policy-sub">Kiểm tra, thanh toán khi nhận hàng (COD)</div>
-    </div>
-  </div>
-
-  <div className="policy-item">
-    <div className="icon">🛠️</div>
-    <div className="policy-text-short">
-      <div className="policy-title">Hỗ trợ bảo hành</div>
-      <div className="policy-sub">Đổi sản phẩm tại tất cả store TORANO</div>
-    </div>
-  </div>
-
-</div>
-
-{/* FULL POLICY / TERMS (CHÍNH SÁCH) */}
-<div className="policy-full">
-  <h3>CHÍNH SÁCH ÁP DỤNG</h3>
-  <div className="policy-text">
-    <p>Áp dụng từ ngày 01/09/2018.</p>
-    <p>Trong vòng 30 ngày kể từ ngày mua sản phẩm với các sản phẩm TORANO. Áp dụng đối với sản phẩm nguyên giá và sản phẩm giảm giá ít hơn 50%.</p>
-    <p>Sản phẩm nguyên giá chỉ được đổi 01 lần duy nhất sang sản phẩm nguyên giá khác và không thấp hơn giá trị sản phẩm đã mua.</p>
-    <p>Sản phẩm giảm giá/khuyến mại ít hơn 50% được đổi 01 lần sang màu khác hoặc size khác trên cùng 1 mã trong điều kiện còn sản phẩm hoặc theo quy chế chương trình (nếu có). Nếu sản phẩm đổi đã hết hàng khi đó KH sẽ được đổi sang sản phẩm khác có giá trị ngang bằng hoặc cao hơn. Khách hàng sẽ thanh toán phần tiền chênh lệch nếu sản phẩm đổi có giá trị cao hơn sản phẩm đã mua.</p>
-    <p>Chính sách chỉ áp dụng khi sản phẩm còn hóa đơn mua hàng, còn nguyên nhãn mác, thẻ bài đính kèm sản phẩm và sản phẩm không bị dơ bẩn, hư hỏng bởi những tác nhân bên ngoài cửa hàng sau khi mua sản phẩm.</p>
-    <p>Sản phẩm đồ lót và phụ kiện không được đổi trả.</p>
-
-    <h4>2. ĐIỀU KIỆN ĐỔI SẢN PHẨM</h4>
-    <p>Đổi hàng trong vòng 07 ngày kể từ ngày khách hàng nhận được sản phẩm. Sản phẩm còn nguyên tem, mác và chưa qua sử dụng.</p>
-
-    <h4>3. THỰC HIỆN ĐỔI SẢN PHẨM</h4>
-    <p>Quý khách có thể đổi hàng Online tại hệ thống cửa hàng và đại lý TORANO trên toàn quốc. Lưu ý: vui lòng mang theo sản phẩm và phiếu giao hàng.</p>
-    <p>Nếu tại khu vực bạn không có cửa hàng TORANO hoặc sản phẩm bạn muốn đổi thì vui lòng gọi Tổng đài 0964942121 để được hướng dẫn các bước đổi sản phẩm.</p>
-
-    <h4>BẢO MẬT THÔNG TIN KHÁCH HÀNG</h4>
-    <p>TORANO chỉ thu thập các loại thông tin cơ bản liên quan đến đơn đặt hàng nhằm mục đích xử lý đơn hàng, nâng cao chất lượng dịch vụ và chăm sóc khách hàng. TORANO cam kết bảo mật thông tin khách hàng và sử dụng đúng mục đích.</p>
-  </div>
-</div>
-
-</div>
-
-</div>
-
+    </>
   )
 }

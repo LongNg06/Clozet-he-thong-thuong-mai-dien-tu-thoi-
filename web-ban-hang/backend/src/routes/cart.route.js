@@ -28,27 +28,41 @@ router.get("/", (req, res) => {
   });
 });
 
-// add item to cart (increment if exists)
+// add item to cart (increment if exists) — with stock check
 router.post("/add", (req, res) => {
   const { id_sanpham, quantity } = req.body;
   if (!id_sanpham) return res.status(400).json({ message: "Missing id_sanpham" });
   const q = Number(quantity || 1);
 
-  db.query("SELECT id, quantity FROM cart WHERE id_sanpham = ?", [id_sanpham], (err, rows) => {
-    if (err) return res.status(500).json({ message: "DB error" });
-    if (rows && rows.length > 0) {
-      const existing = rows[0];
-      const newQ = existing.quantity + q;
-      db.query("UPDATE cart SET quantity = ? WHERE id = ?", [newQ, existing.id], (uErr) => {
-        if (uErr) return res.status(500).json({ message: "DB error" });
-        return res.json({ id: existing.id, id_sanpham, quantity: newQ });
-      });
-    } else {
-      db.query("INSERT INTO cart (id_sanpham, quantity) VALUES (?, ?)", [id_sanpham, q], (iErr, result) => {
-        if (iErr) return res.status(500).json({ message: "DB error" });
-        return res.json({ id: result.insertId, id_sanpham, quantity: q });
-      });
-    }
+  // Check stock first
+  db.query("SELECT so_luong_ton, trang_thai FROM sanpham WHERE id_sanpham = ?", [id_sanpham], (sErr, sRows) => {
+    if (sErr) return res.status(500).json({ message: "DB error" });
+    if (!sRows || sRows.length === 0) return res.status(404).json({ message: "Sản phẩm không tồn tại" });
+    const stock = sRows[0].so_luong_ton;
+    if (sRows[0].trang_thai === 0) return res.status(400).json({ message: "Sản phẩm đã ngừng kinh doanh" });
+
+    db.query("SELECT id, quantity FROM cart WHERE id_sanpham = ?", [id_sanpham], (err, rows) => {
+      if (err) return res.status(500).json({ message: "DB error" });
+      const currentInCart = (rows && rows.length > 0) ? rows[0].quantity : 0;
+      const newQ = currentInCart + q;
+
+      if (newQ > stock) {
+        return res.status(400).json({ message: `Chỉ còn ${stock} sản phẩm trong kho`, so_luong_ton: stock });
+      }
+
+      if (rows && rows.length > 0) {
+        const existing = rows[0];
+        db.query("UPDATE cart SET quantity = ? WHERE id = ?", [newQ, existing.id], (uErr) => {
+          if (uErr) return res.status(500).json({ message: "DB error" });
+          return res.json({ id: existing.id, id_sanpham, quantity: newQ });
+        });
+      } else {
+        db.query("INSERT INTO cart (id_sanpham, quantity) VALUES (?, ?)", [id_sanpham, q], (iErr, result) => {
+          if (iErr) return res.status(500).json({ message: "DB error" });
+          return res.json({ id: result.insertId, id_sanpham, quantity: q });
+        });
+      }
+    });
   });
 });
 

@@ -7,7 +7,7 @@ import SaleBoSuuTap from './components/SaleBoSuuTap/SaleBoSuuTap';
 import BoSuuTapMuaHe from './components/BoSuuTapMuaHe/BoSuuTapMuaHe';
 import CategoryTabs from './components/CategoryTabs/CategoryTabs';
 import CategorySection from './components/Category/CategorySection';
-import { Routes, Route } from 'react-router-dom';
+import { Routes, Route, useLocation } from 'react-router-dom';
 import CartPage from './pages/cart/CartPage';
 import CheckoutPage from './pages/checkout/CheckoutPage';
 import CartDrawer from './components/CartDrawer/CartDrawer';
@@ -15,7 +15,9 @@ import ProductDetail from "./pages/ProductDetail/ProductDetail";
 import NewProduct from './pages//NewProduct copy/newProduct';
 import Login from "../src/components/Login/Login";
 import Register from "../src/components/Register/Register";
+import ForgotPassword from "../src/components/ForgotPassword/ForgotPassword";
 import Admin from "../src/pages/admin/admin";
+import CanhBaoLuaDao from "./pages/CanhBaoLuaDao/CanhBaoLuaDao";
 function HomeLayout() {
   return (
     <>
@@ -42,10 +44,13 @@ function HomeLayout() {
 }
 
 function App() {
+  const location = useLocation();
+  const isAdmin = location.pathname.startsWith("/admin");
+
   return (
     <div className="App">
-      <Header />
-      <CartDrawer />
+      {!isAdmin && <Header />}
+      {!isAdmin && <CartDrawer />}
       <main>
         <Routes>
           <Route path="/" element={<HomeLayout />} />
@@ -55,11 +60,12 @@ function App() {
           <Route path="/new-products" element={<NewProduct />} /> {/* mới */}
           <Route path="/login" element={<Login />} />
   <Route path="/register" element={<Register />} />
+  <Route path="/forgot-password" element={<ForgotPassword />} />
  <Route path="/admin/*" element={<Admin />} />
-          
+          <Route path="/canh-bao-lua-dao" element={<CanhBaoLuaDao />} />
         </Routes>
       </main>
-      <Footer />
+      {!isAdmin && <Footer />}
     </div>
   );
 }

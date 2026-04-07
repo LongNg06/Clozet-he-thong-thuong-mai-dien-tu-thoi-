@@ -61,24 +61,57 @@ const ProductCard = ({ product }: { product: Product }) => {
   };
 
   // ===== ADD TO CART =====
-  const handleAddToCart = () => {
-    fetch("http://localhost:5000/cart/add", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        id_sanpham: product.id_sanpham,
-        quantity: 1,
-      }),
-    })
-      .then((r) => r.json())
-      .then(() => {
+  const handleAddToCart = async () => {
+    // Re-check stock before adding
+    try {
+      const sRes = await fetch(`http://localhost:5000/products/stock/${product.id_sanpham}`);
+      const sData = await sRes.json();
+      if (sData.so_luong_ton <= 0) { alert("Sản phẩm đã hết hàng!"); return; }
+    } catch {}
+
+    const raw = localStorage.getItem('user');
+    const isLoggedIn = !!raw;
+
+    if (isLoggedIn) {
+      // Logged-in: save to backend DB (backend also checks stock)
+      try {
+        const r = await fetch("http://localhost:5000/cart/add", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ id_sanpham: product.id_sanpham, quantity: 1 }),
+        });
+        if (!r.ok) {
+          const err = await r.json();
+          alert(err.message || "Lỗi thêm giỏ hàng");
+          return;
+        }
         window.dispatchEvent(new Event("cart:open"));
-      })
-      .catch(() => {
+        window.dispatchEvent(new Event("cartUpdated"));
+      } catch {
         window.dispatchEvent(new Event("cart:open"));
-      });
+      }
+    } else {
+      // Guest: save to localStorage
+      const cartRaw = localStorage.getItem('cartItems');
+      const cart = cartRaw ? JSON.parse(cartRaw) : [];
+      const existing = cart.find((it: any) => it.id_sanpham === product.id_sanpham);
+      if (existing) {
+        existing.quantity += 1;
+      } else {
+        cart.push({
+          id: product.id_sanpham,
+          id_sanpham: product.id_sanpham,
+          quantity: 1,
+          ten_sanpham: product.ten_sanpham,
+          anh: product.anh,
+          gia_goc: product.gia_goc,
+          gia_khuyen_mai: product.gia_khuyen_mai,
+        });
+      }
+      localStorage.setItem('cartItems', JSON.stringify(cart));
+      window.dispatchEvent(new Event("cart:open"));
+      window.dispatchEvent(new Event("cartUpdated"));
+    }
   };
 
   // ===== BUY NOW (quick purchase) =====
@@ -116,28 +149,28 @@ const ProductCard = ({ product }: { product: Product }) => {
           />
         </Link>
 
-        {/* HOVER BUTTON */}
-        {!isOutOfStock && (
-          <div className="hover-overlay">
-            <div className="hover-row">
-              <button
-                className="add-cart-btn"
-                onClick={handleAddToCart}
-              >
-                🛒 Thêm vào giỏ
-              </button>
-
-              <button
-                className="view-btn"
-                onClick={handleView}
-              >
-                👁
-              </button>
-            </div>
-
-          </div>
-        )}
       </div>
+
+      {/* HOVER BUTTON — outside product-img to avoid overflow:hidden clipping */}
+      {!isOutOfStock && (
+        <div className="hover-overlay">
+          <div className="hover-row">
+            <button
+              className="add-cart-btn"
+              onClick={handleAddToCart}
+            >
+              🛒Thêm vào giỏ
+            </button>
+
+            <button
+              className="view-btn"
+              onClick={handleView}
+            >
+              👁
+            </button>
+          </div>
+        </div>
+      )}
 
       <div className="product-info">
 

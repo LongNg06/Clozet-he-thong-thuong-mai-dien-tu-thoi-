@@ -10,49 +10,34 @@ export default function CheckoutPage() {
   const [address, setAddress] = useState("");
   const [city, setCity] = useState("");
   const [ward, setWard] = useState("");
-  const [district, setDistrict] = useState("");
   const [paymentMethod, setPaymentMethod] = useState("vnpay");
-  const [showCodPopup, setShowCodPopup] = useState(false);
 
-  const [errors, setErrors] = useState<Record<string, string>>({});
+ 
+  const [errors, setErrors] = useState<{ name?: string; email?: string; phone?: string }>({});
   const [selectedShipping, setSelectedShipping] = useState('standard')
   const [lockedShipping, setLockedShipping] = useState(false)
 
-  // Check if user is logged in
-  const getUser = () => {
-    try {
-      const raw = localStorage.getItem('user');
-      return raw ? JSON.parse(raw) : null;
-    } catch { return null; }
-  };
-  const user = getUser();
-  const isLoggedIn = !!user;
-
   useEffect(() => {
-    if (isLoggedIn) {
-      // Logged in: fetch from backend cart
-      fetch('http://localhost:5000/cart')
-        .then((r) => r.json())
-        .then((data) => setCartItems(Array.isArray(data) ? data : []))
-        .catch(() => {
-          // fallback to localStorage
-          loadLocalCart();
-        });
-    } else {
-      // Guest: load from localStorage
-      loadLocalCart();
-    }
+    // Prefer fetching cart from backend (server-side cart used elsewhere)
+    fetch('http://localhost:5000/cart')
+      .then((r) => r.json())
+      .then((data) => {
+        console.log('CheckoutPage fetched cart from backend:', data)
+        setCartItems(Array.isArray(data) ? data : [])
+      })
+      .catch((err) => {
+        console.warn('Failed to fetch cart from backend, falling back to localStorage', err)
+        try {
+              const raw = localStorage.getItem('checkoutItems') || localStorage.getItem('cartItems') || '[]'
+              const parsed = JSON.parse(raw)
+              console.log('CheckoutPage fallback loaded from localStorage:', parsed)
+              setCartItems(Array.isArray(parsed) ? parsed : [])
+            } catch (e) {
+              console.error('Error reading cart from localStorage', e)
+              setCartItems([])
+            }
+      })
   }, []);
-
-  function loadLocalCart() {
-    try {
-      const raw = localStorage.getItem('checkoutItems') || localStorage.getItem('cartItems') || '[]';
-      const parsed = JSON.parse(raw);
-      setCartItems(Array.isArray(parsed) ? parsed : []);
-    } catch {
-      setCartItems([]);
-    }
-  }
 
   // Apply checkout shipping preference from cart drawer (if any)
   useEffect(() => {
@@ -62,7 +47,7 @@ export default function CheckoutPage() {
         setSelectedShipping(pref)
         setLockedShipping(true)
       }
-    } catch { }
+    } catch {}
   }, [])
 
   // Helpers to support different cart item shapes from backend or localStorage
@@ -73,6 +58,7 @@ export default function CheckoutPage() {
     const src = it.image || it.anh || it.img || it.thumbnail || ''
     if (!src) return '/assets/img/default.jpg'
     if (typeof src === 'string' && (src.startsWith('http') || src.startsWith('data:'))) return src
+    // prefix backend host if it's a relative path
     if (typeof src === 'string' && src.startsWith('/')) return `http://localhost:5000${src}`
     return src
   }
@@ -84,26 +70,36 @@ export default function CheckoutPage() {
     if (subtotal >= 500000) {
       setSelectedShipping('free')
       setLockedShipping(true)
-      try { localStorage.setItem('checkoutShipping', 'free') } catch { }
+      try { localStorage.setItem('checkoutShipping', 'free') } catch {}
     } else {
+      // if previously locked due to free shipping but now below threshold, unlock
       try {
         const pref = localStorage.getItem('checkoutShipping')
         if (pref === 'free' && subtotal < 500000) {
           setLockedShipping(false)
+          // remove stored pref so user can choose
           localStorage.removeItem('checkoutShipping')
         }
-      } catch { }
+      } catch {}
     }
   }, [subtotal])
 
-  // prefill contact fields from logged user if present
-  useEffect(() => {
-    if (user) {
-      if (!name) setName(user.name || user.ho_ten || user.fullname || '')
-      if (!email) setEmail(user.email || '')
-      if (!phone) setPhone(user.phone || user.sdt || '')
-    }
-  }, [])
+      // prefill contact fields from logged user if present
+      useEffect(() => {
+        try {
+          const raw = localStorage.getItem('user')
+          if (raw) {
+            const u = JSON.parse(raw)
+            if (u) {
+              if (!name) setName(u.name || u.ho_ten || u.fullname || '')
+              if (!email) setEmail(u.email || '')
+              if (!phone) setPhone(u.phone || u.sdt || '')
+            }
+          }
+        } catch (e) {
+          // ignore
+        }
+      }, [])
 
 
   const shippingOptions = [
@@ -118,54 +114,50 @@ export default function CheckoutPage() {
   const total = subtotal + shippingFee
 
   const validateForm = () => {
-    const e: Record<string, string> = {}
+    const e: any = {}
     if (!name.trim()) e.name = 'Vui lòng nhập họ và tên'
     if (!email.trim()) e.email = 'Vui lòng nhập email'
     else if (!email.includes('@')) e.email = "Email phải chứa ký tự '@'"
     if (!phone.trim()) e.phone = 'Vui lòng nhập số điện thoại'
     else if (!/^\d{10}$/.test(phone.replace(/\s+/g, ''))) e.phone = 'Số điện thoại phải có đúng 10 chữ số'
     if (!address.trim()) e.address = 'Vui lòng nhập địa chỉ giao hàng'
-    if (!city.trim()) e.city = 'Vui lòng nhập tỉnh/thành phố'
-    // district removed
+    if (!city.trim()) e.city = 'Vui lòng nhập thành phố'
     setErrors(e)
     return Object.keys(e).length === 0
   }
 
   // VNPay: call backend to create payment URL and redirect
   async function handleVnPay() {
-    if (!validateForm()) return;
-    if (subtotal <= 0) { alert("Giỏ hàng trống"); return; }
-
-    // Re-check stock for all items before payment
-    for (const item of cartItems) {
-      const pid = item.id_sanpham;
-      if (!pid) continue;
-      try {
-        const sRes = await fetch(`http://localhost:5000/products/stock/${pid}`);
-        if (sRes.ok) {
-          const sData = await sRes.json();
-          const qty = getItemQuantity(item);
-          if (sData.so_luong_ton <= 0) { alert(`Sản phẩm "${getItemName(item)}" đã hết hàng!`); return; }
-          if (qty > sData.so_luong_ton) { alert(`Sản phẩm "${getItemName(item)}" chỉ còn ${sData.so_luong_ton} trong kho!`); return; }
-        }
-      } catch {}
+    if (!validateForm()) return
+    if (subtotal <= 0) {
+      alert("Giỏ hàng trống");
+      return;
     }
-
+    setLoading(true);
     try {
       const res = await fetch("http://localhost:5000/api/create-payment", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ amount: total })
+        body: JSON.stringify({ amount: subtotal, customer: { name, email, phone, address, city, ward } })
       });
+      if (!res.ok) {
+        const txt = await res.text();
+        throw new Error(txt || "Không tạo được phiên VNPay");
+      }
       const data = await res.json();
-      window.location.href = data.url;
-    } catch (err) {
-      console.error("VNPay error:", err);
-      alert("Lỗi thanh toán VNPay");
+      const url = data?.url;
+      if (!url) throw new Error("Không nhận được url thanh toán từ server");
+      // redirect to VNPay sandbox
+      window.location.href = url;
+    } catch (e: any) {
+      console.error(e);
+      alert(e?.message || "Lỗi khi tạo phiên VNPay");
+    } finally {
+      setLoading(false);
     }
   }
 
-  // COD: create order in DB and show popup
+  // COD: simulate order creation and clear cart
   async function handleCod() {
     if (!validateForm()) return
     if (subtotal <= 0) {
@@ -174,63 +166,16 @@ export default function CheckoutPage() {
     }
     setLoading(true);
     try {
-      // Re-check stock for all items before placing order
-      for (const item of cartItems) {
-        const pid = item.id_sanpham;
-        if (!pid) continue;
-        const sRes = await fetch(`http://localhost:5000/products/stock/${pid}`);
-        if (sRes.ok) {
-          const sData = await sRes.json();
-          const qty = getItemQuantity(item);
-          if (sData.so_luong_ton <= 0) {
-            alert(`Sản phẩm "${getItemName(item)}" đã hết hàng!`);
-            setLoading(false);
-            return;
-          }
-          if (qty > sData.so_luong_ton) {
-            alert(`Sản phẩm "${getItemName(item)}" chỉ còn ${sData.so_luong_ton} trong kho!`);
-            setLoading(false);
-            return;
-          }
-        }
-      }
-
-      const orderPayload = {
-        id_KH: user?.id || null,
-        ten_nguoinhan: name,
-        so_dien_thoai: phone,
-        dia_chi_cu_the: address,
-        phuong_xa: ward,
-        quan_huyen: district,
-        tinh_thanh: city,
-        items: cartItems,
-        tong_tien_hang: subtotal,
-        phi_van_chuyen: shippingFee,
-        tong_thanh_toan: total,
-        payment_method: "cod"
-      };
-
-      const res = await fetch("http://localhost:5000/checkout", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(orderPayload)
-      });
-
-      if (!res.ok) {
-        const data = await res.json();
-        throw new Error(data.message || "Lỗi tạo đơn");
-      }
-
-      // Clear cart
+      // In real app call backend to create order. Here simulate and include guest info
+      const orderPayload = { items: cartItems, payment: 'cod', customer: { name, email, phone, address, city, ward }, total: total };
+      console.log('Simulated COD order payload:', orderPayload);
+      // Remove purchased items from localStorage
       localStorage.removeItem("cartItems");
-      localStorage.removeItem("checkoutItems");
-      localStorage.removeItem("checkoutShipping");
       window.dispatchEvent(new CustomEvent("cartUpdated"));
-
-      // Show COD success popup
-      setShowCodPopup(true);
-    } catch (e: any) {
-      alert(e.message || "Lỗi khi tạo đơn hàng");
+      alert("Đặt hàng thành công (COD mô phỏng). Cảm ơn " + (name || 'khách hàng') + "!");
+      window.location.href = "/";
+    } catch (e) {
+      alert("Lỗi khi tạo đơn hàng");
     } finally {
       setLoading(false);
     }
@@ -238,20 +183,6 @@ export default function CheckoutPage() {
 
   return (
     <div className="checkout-wrapper max-w-6xl mx-auto py-8 px-4">
-      {/* COD Success Popup */}
-      {showCodPopup && (
-        <div className="cod-popup-overlay" onClick={() => { setShowCodPopup(false); window.location.href = "/"; }}>
-          <div className="cod-popup" onClick={e => e.stopPropagation()}>
-            <div className="cod-popup-icon">✅</div>
-            <div className="cod-popup-main">Đơn hàng đang được xử lý</div>
-            <div className="cod-popup-sub">Hãy chuẩn bị tiền khi đơn hàng tới</div>
-            <button className="cod-popup-btn" onClick={() => { setShowCodPopup(false); window.location.href = "/"; }}>
-              Về trang chủ
-            </button>
-          </div>
-        </div>
-      )}
-
       <div className="flex items-center justify-between mb-8">
         <a href="/cart" className="flex items-center gap-2 text-gray-600 hover:text-gray-800 transition-colors">
           <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -283,42 +214,57 @@ export default function CheckoutPage() {
               {errors.phone && <p className="text-red-500 text-sm mt-1">{errors.phone}</p>}
             </div>
 
-            {/* Address fields */}
-            <h3 className="checkout-section-title">Địa chỉ giao hàng</h3>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Địa chỉ cụ thể</label>
-              <input value={address} onChange={(e) => setAddress(e.target.value)} placeholder="Số nhà, tên đường..." className="w-full border rounded-lg px-3 py-2" />
-              {errors.address && <p className="text-red-500 text-sm mt-1">{errors.address}</p>}
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Phường/Xã</label>
-              <input value={ward} onChange={(e) => setWard(e.target.value)} className="w-full border rounded-lg px-3 py-2" />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Tỉnh/Thành phố</label>
-              <input value={city} onChange={(e) => setCity(e.target.value)} className="w-full border rounded-lg px-3 py-2" />
-              {errors.city && <p className="text-red-500 text-sm mt-1">{errors.city}</p>}
-            </div>
+        <div>
+  <h3 className="text-sm font-medium text-gray-700 mb-2">
+    Phương thức thanh toán
+  </h3>
 
-            <div>
-              <h3 className="text-sm font-medium text-gray-700 mb-2">
-                Phương thức thanh toán
-              </h3>
-            </div>
+  <div className="space-y-2">
+    <label className="flex items-center gap-3">
+      <input
+        type="radio"
+        name="payment"
+        value="vnpay"
+        checked={paymentMethod === "vnpay"}
+        onChange={(e) => setPaymentMethod(e.target.value)}
+      />
+      <span>VNPay (mô phỏng)</span>
+    </label>
 
+    <label className="flex items-center gap-3">
+      <input
+        type="radio"
+        name="payment"
+        value="cod"
+        checked={paymentMethod === "cod"}
+        onChange={(e) => setPaymentMethod(e.target.value)}
+      />
+      <span>COD - Thanh toán khi nhận hàng</span>
+    </label>
+  </div>
+</div>
+
+           <div>
+  <button
+    onClick={() => {
+      if (paymentMethod === "vnpay") handleVnPay();
+      else handleCod();
+    }}
+    disabled={loading || cartItems.length === 0}
+    className={`w-full py-3 rounded-lg text-white ${
+      paymentMethod === "vnpay" ? "bg-blue-600" : "bg-gray-600"
+    }`}
+  >
+    {loading
+      ? "Đang xử lý..."
+      : paymentMethod === "vnpay"
+      ? "Thanh toán VNPay"
+      : "Đặt hàng (COD)"}
+  </button>
+</div>
             <div>
-              <button
-                type="button"
-                onClick={handleVnPay}
-                disabled={loading || cartItems.length === 0}
-                className="w-full py-3 rounded-lg text-white bg-blue-600"
-              >
-                {loading ? "Đang xử lý..." : "Thanh toán VNPay"}
-              </button>
-            </div>
-            <div>
-              <button onClick={handleCod} disabled={loading || cartItems.length === 0} className="w-full py-3 rounded-lg bg-gray-200 cod-btn">
-                {loading ? "Đang xử lý..." : "Đặt hàng (COD)"}
+              <button onClick={handleCod} disabled={loading || cartItems.length === 0} className="w-full py-3 rounded-lg bg-gray-200">
+                Đặt hàng (COD)
               </button>
             </div>
           </div>
@@ -329,9 +275,9 @@ export default function CheckoutPage() {
           <div className="space-y-4 mb-6">
             {cartItems.map((item, i) => (
               <div key={i} className="flex items-center gap-4 pb-4 border-b border-gray-100">
-                <div className="thumb">
-                  <img src={getItemImage(item)} alt={getItemName(item)} className="thumb-img" />
-                </div>
+                  <div className="thumb">
+                    <img src={getItemImage(item)} alt={getItemName(item)} className="thumb-img" />
+                  </div>
                 <div className="flex-1">
                   <div className="font-medium text-gray-800">{getItemName(item)}</div>
                   <div className="text-sm text-gray-500">Số lượng: {getItemQuantity(item)}</div>

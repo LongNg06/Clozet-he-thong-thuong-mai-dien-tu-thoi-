@@ -37,6 +37,11 @@
   transform: scale(1.07);
 }
 
+/* Card needs relative positioning for hover-overlay */
+.product-card {
+  position: relative;
+}
+
 /* 🔴 SALE PILL */
 .sale-pill {
   position: absolute;
@@ -95,48 +100,55 @@
 
 .hover-overlay {
   position: absolute;
-  bottom: 16px;
   left: 50%;
+  bottom: 100px; /* sits above the product-info area, inside the image zone */
   transform: translateX(-50%) translateY(15px);
   display: flex;
   flex-direction: column;
   align-items: stretch;
-  gap: 8px;
+  gap: 6px;
   opacity: 0;
   transition: 0.25s ease;
-  width: 90%;
+  width: 80%;
   justify-content: center;
+  z-index: 5;
+  pointer-events: none;
 }
 
 .product-card:hover .hover-overlay {
   opacity: 1;
   transform: translateX(-50%) translateY(0);
+  pointer-events: auto;
 }
 
 .hover-row {
   display: flex;
-  gap: 8px;
+  gap: 6px;
+  width: 100%;
 }
 
 /* ADD CART */
 .add-cart-btn {
-  flex: 1;
+  flex: 5;
+  min-width: 0;
+  background: #fff;
   color: #000;
   border: none;
-  height: 44px;
-  border-radius: 10px;
+  height: 40px;
+  border-radius: 8px;
   font-weight: 600;
   font-size: 13px;
   cursor: pointer;
-  box-shadow: 0 6px 18px rgba(0,0,0,0.15);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
   transition: 0.2s ease;
 
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 8px;
+  gap: 6px;
 
   white-space: nowrap;
+  overflow: hidden;
 }
 
 .add-cart-btn:hover {
@@ -146,27 +158,28 @@
 
 /* VIEW BTN */
 .view-btn {
-  width: 44px;
-  height: 44px;
-  background: #3a3a3a;
-  color: #fff;
+  flex: 0 0 40px;
+  height: 40px;
+  background: #fff;
+  color: #000;
   border: none;
-  border-radius: 10px;
+  border-radius: 8px;
+  font-size: 16px;
   cursor: pointer;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
   transition: 0.2s ease;
-
   display: flex;
   align-items: center;
   justify-content: center;
 }
-
 .view-btn:hover {
   background: #000;
+  color: #fff;
 }
 
 /* BUY NOW BUTTON (full width under the two small buttons) */
 .buy-now-btn {
-  width: 100%;
+  width: 80%;
   height: 44px;
   background: #0070f3;
   color: #fff;
@@ -226,4 +239,28 @@
   color: #b5b5b5;
   font-size: 14px;
   font-weight: 500;
+}
+/* FIX CỨNG 2 NÚT - KHÔNG BỊ ĂN HIẾP */
+.hover-row {
+  display: flex;
+  gap: 8px;
+}
+
+.add-cart-btn {
+  flex: 1 !important;
+}
+
+.view-btn {
+  flex: 0 0 50px !important;   /* 👈 ép cứng luôn */
+  min-width: 50px !important;
+  max-width: 50px !important;
+
+  height: 44px;
+  background: #3a3a3a;
+  color: #fff;
+  border-radius: 8px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }

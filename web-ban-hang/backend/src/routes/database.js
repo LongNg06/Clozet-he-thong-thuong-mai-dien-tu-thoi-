@@ -4,7 +4,8 @@ const db = mysql.createConnection({
   host: "localhost",
   user: "root",
   password: "",
-  database: "web_ban_hang"
+  database: "web_ban_hang",
+  charset: "utf8mb4"
 });
 
 db.connect((err) => {

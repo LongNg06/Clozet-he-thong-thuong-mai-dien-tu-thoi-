@@ -12,15 +12,40 @@ interface CartItem {
   trang_thai?: number;
 }
 
+function getUser() {
+  try {
+    const raw = localStorage.getItem('user');
+    return raw ? JSON.parse(raw) : null;
+  } catch { return null; }
+}
+
+// ===== localStorage cart helpers (guest) =====
+function getLocalCart(): CartItem[] {
+  try {
+    const raw = localStorage.getItem('cartItems');
+    return raw ? JSON.parse(raw) : [];
+  } catch { return []; }
+}
+function saveLocalCart(items: CartItem[]) {
+  localStorage.setItem('cartItems', JSON.stringify(items));
+}
+
 export default function CartDrawer() {
   const [open, setOpen] = useState(false);
   const [items, setItems] = useState<CartItem[]>([]);
 
   function load() {
-    fetch("http://localhost:5000/cart")
-      .then((r) => r.json())
-      .then((d: CartItem[]) => setItems(d || []))
-      .catch(() => setItems([]));
+    const loggedIn = !!getUser();
+    if (loggedIn) {
+      // Logged in: fetch from backend DB
+      fetch("http://localhost:5000/cart")
+        .then((r) => r.json())
+        .then((d: CartItem[]) => setItems(d || []))
+        .catch(() => setItems([]));
+    } else {
+      // Guest: load from localStorage
+      setItems(getLocalCart());
+    }
   }
 
   useEffect(() => {
@@ -29,36 +54,44 @@ export default function CartDrawer() {
       load();
     }
     window.addEventListener("cart:open", show as EventListener);
-    return () => window.removeEventListener("cart:open", show as EventListener);
+    window.addEventListener("cartUpdated", () => load());
+    return () => {
+      window.removeEventListener("cart:open", show as EventListener);
+      window.removeEventListener("cartUpdated", () => load());
+    };
   }, []);
 
   function updateQuantity(id: number, newQty: number) {
-    if (newQty < 1) return; // do not allow less than 1
-    fetch("http://localhost:5000/cart/update", {
-      method: "PUT",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ id, quantity: newQty }),
-    })
-      .then((r) => r.json())
-      .then(() => {
-        load();
-        // notify other components (header) to refresh count
-        window.dispatchEvent(new Event('cart:open'));
+    if (newQty < 1) return;
+    if (!!getUser()) {
+      fetch("http://localhost:5000/cart/update", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id, quantity: newQty }),
       })
-      .catch(() => {
-        // still reload for safety
-        load();
-      });
+        .then(() => load())
+        .catch(() => load());
+    } else {
+      // Guest: update localStorage
+      const cart = getLocalCart();
+      const item = cart.find(it => it.id === id || it.id_sanpham === id);
+      if (item) item.quantity = newQty;
+      saveLocalCart(cart);
+      setItems([...cart]);
+    }
   }
 
   function removeItem(id: number) {
-    fetch(`http://localhost:5000/cart/remove/${id}`, { method: 'DELETE' })
-      .then((r) => r.json())
-      .then(() => {
-        load();
-        window.dispatchEvent(new Event('cart:open'));
-      })
-      .catch(() => load());
+    if (!!getUser()) {
+      fetch(`http://localhost:5000/cart/remove/${id}`, { method: 'DELETE' })
+        .then(() => load())
+        .catch(() => load());
+    } else {
+      // Guest: remove from localStorage
+      const cart = getLocalCart().filter(it => it.id !== id && it.id_sanpham !== id);
+      saveLocalCart(cart);
+      setItems([...cart]);
+    }
   }
 
   const grandTotal = items.reduce((s, it) => {
@@ -66,7 +99,7 @@ export default function CartDrawer() {
     return s + (it.quantity || 0) * price;
   }, 0);
 
-  const FREE_SHIP_THRESHOLD = 500000; // 500,000 VND
+  const FREE_SHIP_THRESHOLD = 500000;
   const remainingForFree = Math.max(0, FREE_SHIP_THRESHOLD - grandTotal);
   const progress = Math.min(1, grandTotal / FREE_SHIP_THRESHOLD);
 
@@ -95,35 +128,41 @@ export default function CartDrawer() {
 
       <div className="drawer-body">
         {items.length === 0 ? <p>Không có sản phẩm</p> : (
-          items.map(it => (
-            <div key={it.id} className="drawer-item">
-              <img src={it.anh?.startsWith('http')? it.anh : `http://localhost:5000${it.anh}`} alt={it.ten_sanpham} />
+          items.map(it => {
+            const itemKey = it.id || it.id_sanpham;
+            const imgSrc = it.anh?.startsWith('http') ? it.anh : `http://localhost:5000${it.anh}`;
+            return (
+            <div key={itemKey} className="drawer-item">
+              <img src={imgSrc} alt={it.ten_sanpham} />
               <div className="meta">
                 <div className="name">{it.ten_sanpham}</div>
                 <div className="price">{Number(it.gia_khuyen_mai || it.gia_goc).toLocaleString('vi-VN')}₫</div>
                 <div className="qty-controls">
-                  <button className="qty-btn" onClick={() => updateQuantity(it.id, (it.quantity || 0) - 1)}>-</button>
+                  <button className="qty-btn" onClick={() => updateQuantity(it.id || it.id_sanpham, (it.quantity || 0) - 1)}>-</button>
                   <span className="qty">{it.quantity}</span>
-                  <button className="qty-btn" onClick={() => updateQuantity(it.id, (it.quantity || 0) + 1)}>+</button>
+                  <button className="qty-btn" onClick={() => updateQuantity(it.id || it.id_sanpham, (it.quantity || 0) + 1)}>+</button>
                 </div>
                 <div className="item-total">Tổng: {(Number(it.gia_khuyen_mai || it.gia_goc) * (it.quantity || 0)).toLocaleString('vi-VN')}₫</div>
               </div>
-              <button className="remove-btn" onClick={() => removeItem(it.id)}>×</button>
+              <button className="remove-btn" onClick={() => removeItem(it.id || it.id_sanpham)}>×</button>
             </div>
-          ))
+            );
+          })
         )}
       </div>
 
       <div className="drawer-footer">
         <div className="footer-total">Tổng cộng: <strong>{grandTotal.toLocaleString('vi-VN')}₫</strong></div>
         <button className="view-cart" onClick={() => {
-          // If eligible for free shipping, store preference and lock it on checkout
           if (grandTotal >= FREE_SHIP_THRESHOLD) {
             try { localStorage.setItem('checkoutShipping','free'); } catch {};
           } else {
             try { localStorage.removeItem('checkoutShipping'); } catch {};
           }
-          // navigate to checkout
+          // Save items for checkout if guest
+          if (!getUser()) {
+            localStorage.setItem('checkoutItems', JSON.stringify(items));
+          }
           window.location.href = '/checkout';
         }}>Thanh toán</button>
       </div>

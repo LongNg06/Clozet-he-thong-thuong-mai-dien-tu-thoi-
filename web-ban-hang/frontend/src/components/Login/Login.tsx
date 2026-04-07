@@ -62,10 +62,10 @@ function Login() {
 
     <div className="extra">
       <p>
-        <a href="#">Quên mật khẩu?</a>
+        <a href="/forgot-password">Quên mật khẩu?</a>
       </p>
       <p>
-        Chưa có tài khoản? <a href="/signup">Đăng ký</a>
+        Chưa có tài khoản? <a href="/register">Đăng ký</a>
       </p>
     </div>
   </form>
