@@ -1,5 +1,5 @@
-import { useEffect, useState } from "react";
-import { Link, useLocation } from "react-router-dom";
+import { useEffect, useState, useRef } from "react";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import "./style.css";
 
 const API = (import.meta.env && (import.meta.env.VITE_API_URL as string)) || "http://localhost:5000";
@@ -24,6 +24,15 @@ type Order = {
 type Stats = { totalProducts: number; ordersToday: number; totalMembers: number };
 type RecentOrder = { id_donhang: number; ho_ten: string; tong_thanh_toan: number; trang_thai_donhang: string; ngay_dat: string };
 type LowStock = { id_sanpham: number; ten_sanpham: string; anh: string; tong_ton: number };
+type BlogPost = {
+  id_baiviet: number; tieu_de: string; noi_dung: string; anh_dai_dien: string;
+  tom_tat: string; tac_gia: string; trang_thai: number; ngay_tao: string;
+};
+type AdminNotification = {
+  id: number; id_KH: number; nguoi_gui: "admin" | "user"; tieu_de: string;
+  noi_dung: string; parent_id: number | null; da_doc: number; ngay_tao: string;
+  ho_ten?: string; email?: string;
+};
 
 /* ====== SIDEBAR ====== */
 function Sidebar({ current }: { current: string }) {
@@ -32,6 +41,8 @@ function Sidebar({ current }: { current: string }) {
     { key: "products", to: "/admin/products", icon: "📦", label: "Sản phẩm" },
     { key: "categories", to: "/admin/categories", icon: "🗂️", label: "Danh mục" },
     { key: "orders", to: "/admin/orders", icon: "🧾", label: "Đơn hàng" },
+    { key: "blogs", to: "/admin/blogs", icon: "📝", label: "Bài viết" },
+    { key: "notifications", to: "/admin/notifications", icon: "🔔", label: "Thông báo" },
   ];
 
   return (
@@ -168,6 +179,19 @@ function ProductModal({ product, categories, onClose, onSave }: {
             <label>Mô tả</label>
             <textarea value={form.mo_ta || ""} onChange={e => set("mo_ta", e.target.value)} />
           </div>
+          <div className="form-row">
+            <div className="form-group">
+              <label>Số lượng tồn kho</label>
+              <input type="number" min="0" value={form.tong_ton_kho ?? ""} onChange={e => set("tong_ton_kho", +e.target.value)} />
+            </div>
+            <div className="form-group">
+              <label>Tình trạng</label>
+              <label className="stock-toggle">
+                <input type="checkbox" checked={!!form.trang_thai} onChange={e => set("trang_thai", e.target.checked ? 1 : 0)} />
+                <span className="stock-toggle-label">{form.trang_thai ? "✅ Còn hàng" : "⛔ Hết hàng"}</span>
+              </label>
+            </div>
+          </div>
           <div className="modal-actions">
             <button className="btn btn-outline" onClick={onClose}>Hủy</button>
             <button className="btn btn-primary" onClick={() => onSave(form)}>Lưu</button>
@@ -202,8 +226,10 @@ function ProductsPage() {
     const isEdit = !!form.id_sanpham;
     const url = isEdit ? `${API}/admin/products/${form.id_sanpham}` : `${API}/admin/products`;
     const method = isEdit ? "PUT" : "POST";
+    const payload = { ...form };
+    delete (payload as any).tong_ton_kho;
     try {
-      const res = await fetch(url, { method, headers: { "Content-Type": "application/json" }, body: JSON.stringify(form) });
+      const res = await fetch(url, { method, headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload) });
       if (!res.ok) throw new Error();
       setModal(false);
       load();
@@ -511,16 +537,276 @@ function OrdersPage() {
   );
 }
 
+/* ====== BLOG MODAL ====== */
+function BlogModal({ blog, onClose, onSave }: {
+  blog: Partial<BlogPost> | null; onClose: () => void; onSave: (b: Partial<BlogPost>) => void;
+}) {
+  const [form, setForm] = useState<Partial<BlogPost>>(blog || {});
+  const set = (k: string, v: any) => setForm(prev => ({ ...prev, [k]: v }));
+
+  return (
+    <div className="modal-overlay" onClick={onClose}>
+      <div className="modal-content" onClick={e => e.stopPropagation()} style={{ maxWidth: 700 }}>
+        <h2>{blog?.id_baiviet ? "Sửa bài viết" : "Thêm bài viết"}</h2>
+        <div className="admin-form">
+          <div className="form-group">
+            <label>Tiêu đề</label>
+            <input value={form.tieu_de || ""} onChange={e => set("tieu_de", e.target.value)} />
+          </div>
+          <div className="form-row">
+            <div className="form-group">
+              <label>Tác giả</label>
+              <input value={form.tac_gia || ""} onChange={e => set("tac_gia", e.target.value)} placeholder="Admin" />
+            </div>
+            <div className="form-group">
+              <label>Trạng thái</label>
+              <select value={form.trang_thai ?? 1} onChange={e => set("trang_thai", +e.target.value)}>
+                <option value={1}>Hiển thị</option>
+                <option value={0}>Ẩn</option>
+              </select>
+            </div>
+          </div>
+          <div className="form-group">
+            <label>Ảnh đại diện (URL)</label>
+            <input value={form.anh_dai_dien || ""} onChange={e => set("anh_dai_dien", e.target.value)} />
+          </div>
+          <div className="form-group">
+            <label>Tóm tắt</label>
+            <textarea rows={3} value={form.tom_tat || ""} onChange={e => set("tom_tat", e.target.value)} />
+          </div>
+          <div className="form-group">
+            <label>Nội dung (HTML)</label>
+            <textarea rows={10} value={form.noi_dung || ""} onChange={e => set("noi_dung", e.target.value)} style={{ fontFamily: "monospace", fontSize: 13 }} />
+          </div>
+          <div className="modal-actions">
+            <button className="btn btn-outline" onClick={onClose}>Hủy</button>
+            <button className="btn btn-primary" onClick={() => onSave(form)}>Lưu</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* ====== BLOGS PAGE ====== */
+function BlogsPage() {
+  const [blogs, setBlogs] = useState<BlogPost[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [modal, setModal] = useState<Partial<BlogPost> | null | false>(false);
+  const [search, setSearch] = useState("");
+
+  const load = () => {
+    setLoading(true);
+    fetch(`${API}/admin/blogs`).then(r => r.json())
+      .then(d => setBlogs(Array.isArray(d) ? d : []))
+      .catch(console.error)
+      .finally(() => setLoading(false));
+  };
+  useEffect(() => { load(); }, []);
+
+  const handleSave = async (form: Partial<BlogPost>) => {
+    const isEdit = !!form.id_baiviet;
+    const url = isEdit ? `${API}/admin/blogs/${form.id_baiviet}` : `${API}/admin/blogs`;
+    const method = isEdit ? "PUT" : "POST";
+    try {
+      const res = await fetch(url, { method, headers: { "Content-Type": "application/json" }, body: JSON.stringify(form) });
+      if (!res.ok) throw new Error();
+      setModal(false);
+      load();
+    } catch { alert("Lưu thất bại"); }
+  };
+
+  const handleDelete = async (id: number) => {
+    if (!confirm("Bạn có chắc muốn xóa bài viết này?")) return;
+    try {
+      await fetch(`${API}/admin/blogs/${id}`, { method: "DELETE" });
+      load();
+    } catch { alert("Xóa thất bại"); }
+  };
+
+  const filtered = blogs.filter(b => b.tieu_de?.toLowerCase().includes(search.toLowerCase()));
+
+  return (
+    <>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
+        <h2 style={{ color: "#fff", margin: 0 }}>Quản lý bài viết</h2>
+        <button className="btn btn-primary" onClick={() => setModal({})}>+ Thêm bài viết</button>
+      </div>
+
+      <div className="admin-search">
+        <input placeholder="Tìm kiếm bài viết..." value={search} onChange={e => setSearch(e.target.value)} />
+      </div>
+
+      <div className="card">
+        {loading ? <div>Đang tải...</div> : (
+          <table className="admin-table">
+            <thead>
+              <tr>
+                <th>Ảnh</th><th>Tiêu đề</th><th>Tác giả</th><th>Ngày tạo</th><th>Trạng thái</th><th>Hành động</th>
+              </tr>
+            </thead>
+            <tbody>
+              {filtered.map(b => (
+                <tr key={b.id_baiviet}>
+                  <td><img className="product-thumb" src={b.anh_dai_dien || "/img/placeholder.png"} alt="" /></td>
+                  <td style={{ fontWeight: 600, color: "#fff", maxWidth: 280 }}>{b.tieu_de}</td>
+                  <td>{b.tac_gia || "Admin"}</td>
+                  <td style={{ fontSize: "0.85rem" }}>{b.ngay_tao ? new Date(b.ngay_tao).toLocaleDateString("vi-VN") : "—"}</td>
+                  <td>
+                    <span className={`status-badge ${b.trang_thai ? "delivered" : "cancelled"}`}>
+                      {b.trang_thai ? "Hiển thị" : "Ẩn"}
+                    </span>
+                  </td>
+                  <td>
+                    <div className="btn-group">
+                      <button className="btn btn-outline btn-sm" onClick={() => setModal(b)}>Sửa</button>
+                      <button className="btn btn-danger btn-sm" onClick={() => handleDelete(b.id_baiviet)}>Xóa</button>
+                    </div>
+                  </td>
+                </tr>
+              ))}
+              {filtered.length === 0 && (
+                <tr><td colSpan={6} style={{ textAlign: "center", color: "var(--muted)" }}>Không có bài viết</td></tr>
+              )}
+            </tbody>
+          </table>
+        )}
+      </div>
+
+      {modal !== false && (
+        <BlogModal blog={modal} onClose={() => setModal(false)} onSave={handleSave} />
+      )}
+    </>
+  );
+}
+
+/* ====== NOTIFICATIONS PAGE ====== */
+function NotificationsPage() {
+  const [allNotis, setAllNotis] = useState<AdminNotification[]>([]);
+  const [customers, setCustomers] = useState<{ id_KH: number; ho_ten: string; email: string }[]>([]);
+  const [sendTo, setSendTo] = useState("0"); // 0 = all
+  const [sendTitle, setSendTitle] = useState("");
+  const [sendBody, setSendBody] = useState("");
+  const [replyTo, setReplyTo] = useState<AdminNotification | null>(null);
+  const [replyText, setReplyText] = useState("");
+
+  const load = () => {
+    fetch(`${API}/admin/notifications`).then(r => r.json()).then(setAllNotis).catch(() => {});
+    fetch(`${API}/admin/notifications/unread-count`).then(r => r.json()).catch(() => {});
+  };
+
+  useEffect(() => {
+    load();
+    fetch(`${API}/admin/stats`).catch(() => {});
+    // Load customer list for dropdown
+    fetch(`${API}/admin/notifications`).then(r => r.json()).then((data: AdminNotification[]) => {
+      const map = new Map<number, { id_KH: number; ho_ten: string; email: string }>();
+      data.forEach(n => { if (n.id_KH && !map.has(n.id_KH)) map.set(n.id_KH, { id_KH: n.id_KH, ho_ten: n.ho_ten || "", email: n.email || "" }); });
+      setCustomers(Array.from(map.values()));
+    }).catch(() => {});
+    // Mark all user replies as read
+    fetch(`${API}/admin/notifications/read-all`, { method: "PUT" }).catch(() => {});
+  }, []);
+
+  const handleSend = async () => {
+    if (!sendTitle.trim()) { alert("Nhập tiêu đề"); return; }
+    const res = await fetch(`${API}/notifications`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ id_KH: Number(sendTo), nguoi_gui: "admin", tieu_de: sendTitle, noi_dung: sendBody }),
+    });
+    const data = await res.json();
+    if (data.success) { alert(data.message || "Đã gửi!"); setSendTitle(""); setSendBody(""); load(); }
+    else alert(data.message || "Lỗi");
+  };
+
+  const handleReply = async (n: AdminNotification) => {
+    if (!replyText.trim()) return;
+    await fetch(`${API}/notifications`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ id_KH: n.id_KH, nguoi_gui: "admin", tieu_de: "Phản hồi từ Admin", noi_dung: replyText, parent_id: n.id }),
+    });
+    setReplyText("");
+    setReplyTo(null);
+    load();
+  };
+
+  return (
+    <>
+      {/* SEND NEW NOTIFICATION */}
+      <div className="card" style={{ marginBottom: 24 }}>
+        <div className="card-title">📨 Gửi thông báo</div>
+        <div style={{ display: "flex", gap: 12, flexWrap: "wrap", marginBottom: 12 }}>
+          <select value={sendTo} onChange={e => setSendTo(e.target.value)} className="admin-input" style={{ maxWidth: 260 }}>
+            <option value="0">Tất cả khách hàng</option>
+            {customers.map(c => (
+              <option key={c.id_KH} value={c.id_KH}>{c.ho_ten || c.email} (ID: {c.id_KH})</option>
+            ))}
+          </select>
+          <input className="admin-input" style={{ flex: 1, minWidth: 200 }} placeholder="Tiêu đề..." value={sendTitle} onChange={e => setSendTitle(e.target.value)} />
+        </div>
+        <textarea className="admin-input" style={{ width: "100%", minHeight: 60, marginBottom: 12 }} placeholder="Nội dung..." value={sendBody} onChange={e => setSendBody(e.target.value)} />
+        <button className="btn-primary" onClick={handleSend}>Gửi thông báo</button>
+      </div>
+
+      {/* NOTIFICATION LIST */}
+      <div className="card">
+        <div className="card-title">📬 Tất cả thông báo ({allNotis.length})</div>
+        {allNotis.length === 0 ? (
+          <div style={{ color: "var(--muted)", padding: 16 }}>Chưa có thông báo nào</div>
+        ) : (
+          <div style={{ maxHeight: 500, overflowY: "auto" }}>
+            {allNotis.map(n => (
+              <div key={n.id} className={`admin-noti-item ${n.nguoi_gui === "user" ? "admin-noti-user" : "admin-noti-admin"}`}>
+                <div className="admin-noti-meta">
+                  <span className="admin-noti-sender">{n.nguoi_gui === "user" ? `👤 ${n.ho_ten || n.email || "KH#" + n.id_KH}` : "🛒 Admin"}</span>
+                  <span className="admin-noti-date">{new Date(n.ngay_tao).toLocaleString("vi-VN")}</span>
+                  {n.nguoi_gui === "user" && !n.da_doc && <span className="admin-noti-new">MỚI</span>}
+                </div>
+                <div className="admin-noti-title">{n.tieu_de}</div>
+                {n.noi_dung && <div className="admin-noti-body">{n.noi_dung}</div>}
+                {n.nguoi_gui === "user" && (
+                  <button className="admin-noti-reply-btn" onClick={() => { setReplyTo(replyTo?.id === n.id ? null : n); setReplyText(""); }}>Trả lời</button>
+                )}
+                {replyTo?.id === n.id && (
+                  <div style={{ marginTop: 8, display: "flex", gap: 8 }}>
+                    <input className="admin-input" style={{ flex: 1 }} placeholder="Nhập phản hồi..." value={replyText} onChange={e => setReplyText(e.target.value)} />
+                    <button className="btn-primary" onClick={() => handleReply(n)}>Gửi</button>
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+    </>
+  );
+}
+
 /* ====== MAIN ADMIN COMPONENT ====== */
 export default function Admin() {
   const location = useLocation();
+  const navigate = useNavigate();
   const path = location.pathname || "/admin";
+  const [adminNotiCount, setAdminNotiCount] = useState(0);
+
+  useEffect(() => {
+    const fetchCount = () => fetch(`${API}/admin/notifications/unread-count`).then(r => r.json()).then(d => setAdminNotiCount(d.count || 0)).catch(() => {});
+    fetchCount();
+    const iv = setInterval(fetchCount, 15000);
+    return () => clearInterval(iv);
+  }, []);
   const current = path.includes("/products")
     ? "products"
     : path.includes("/categories")
     ? "categories"
     : path.includes("/orders")
     ? "orders"
+    : path.includes("/blogs")
+    ? "blogs"
+    : path.includes("/notifications")
+    ? "notifications"
     : "overview";
 
   const pageTitle = {
@@ -528,6 +814,8 @@ export default function Admin() {
     products: "Sản phẩm",
     categories: "Danh mục",
     orders: "Đơn hàng",
+    blogs: "Bài viết",
+    notifications: "Thông báo",
   }[current];
 
   return (
@@ -538,6 +826,10 @@ export default function Admin() {
         <div className="admin-header">
           <h1>{pageTitle}</h1>
           <div className="header-right">
+            <button className="admin-bell-btn" onClick={() => navigate("/admin/notifications")} title="Thông báo">
+              🔔
+              {adminNotiCount > 0 && <span className="admin-bell-badge">{adminNotiCount}</span>}
+            </button>
             <div className="greeting">Xin chào, <strong>Admin</strong></div>
             <button className="header-logout-btn" onClick={() => { localStorage.removeItem('user'); window.dispatchEvent(new Event('user:logout')); window.location.href = '/'; }}>
               Đăng xuất
@@ -549,6 +841,8 @@ export default function Admin() {
         {current === "products" && <ProductsPage />}
         {current === "categories" && <CategoriesPage />}
         {current === "orders" && <OrdersPage />}
+        {current === "blogs" && <BlogsPage />}
+        {current === "notifications" && <NotificationsPage />}
 
         <footer className="admin-footer">
           © {new Date().getFullYear()} CLOZET SIÊU VIP HEHE — Admin

@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import "./ProductDetail.css";
 
@@ -18,6 +18,17 @@ interface Product {
   so_luong_ton?: number;
 }
 
+interface Review {
+  id_danhgia: number;
+  id_sanpham: number;
+  id_KH: number;
+  id_donhang: number;
+  so_sao: number;
+  noi_dung: string;
+  ngay_tao: string;
+  ho_ten: string;
+}
+
 export default function ProductDetail() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
@@ -31,10 +42,28 @@ export default function ProductDetail() {
 
   // Variant states
   const [sizes, setSizes] = useState<{ id: number; name: string }[]>([]);
-  const [colors, setColors] = useState<{ id: number; name: string }[]>([]);
+  const [colors, setColors] = useState<{ id: number; name: string; image?: string }[]>([]);
   const [selectedSize, setSelectedSize] = useState<number | null>(null);
   const [selectedColor, setSelectedColor] = useState<number | null>(null);
   const [activeTab, setActiveTab] = useState<string>("mota");
+
+  // Review states
+  const [reviews, setReviews] = useState<Review[]>([]);
+  const [canReview, setCanReview] = useState(false);
+  const [reviewOrders, setReviewOrders] = useState<{ id_donhang: number }[]>([]);
+  const [reviewStar, setReviewStar] = useState(5);
+  const [reviewHover, setReviewHover] = useState(0);
+  const [reviewText, setReviewText] = useState("");
+  const [reviewOrderId, setReviewOrderId] = useState<number | null>(null);
+  const [submittingReview, setSubmittingReview] = useState(false);
+
+  // Wishlist state
+  const [inWishlist, setInWishlist] = useState(false);
+
+  const avgRating = useMemo(() => {
+    if (reviews.length === 0) return 0;
+    return reviews.reduce((sum, r) => sum + r.so_sao, 0) / reviews.length;
+  }, [reviews]);
 
   useEffect(() => {
     // Fetch fresh stock data
@@ -76,16 +105,30 @@ export default function ProductDetail() {
               sizeMap.set(r.id_kichco, r.ten_kichco);
             }
           });
-          setSizes(Array.from(sizeMap, ([id, name]) => ({ id, name })));
+          const sizeArr = Array.from(sizeMap, ([id, name]) => ({ id, name }));
+          setSizes(sizeArr);
+          // Auto-select first size
+          if (sizeArr.length > 0) setSelectedSize(sizeArr[0].id);
 
-          // Extract unique colors
-          const colorMap = new Map<number, string>();
+          // Extract unique colors with their variant images
+          const colorMap = new Map<number, { name: string; image?: string }>();
           data.forEach((r: Product) => {
             if (r.id_mau && r.ten_mau) {
-              colorMap.set(r.id_mau, r.ten_mau);
+              if (!colorMap.has(r.id_mau)) {
+                const img = r.anh_bienthe
+                  ? (r.anh_bienthe.startsWith("http") ? r.anh_bienthe : `http://localhost:5000${r.anh_bienthe}`)
+                  : undefined;
+                colorMap.set(r.id_mau, { name: r.ten_mau, image: img });
+              }
             }
           });
-          setColors(Array.from(colorMap, ([id, name]) => ({ id, name })));
+          setColors(Array.from(colorMap, ([id, val]) => ({ id, name: val.name, image: val.image })));
+          // Auto-select first color
+          const colorArr = Array.from(colorMap);
+          if (colorArr.length > 0) {
+            setSelectedColor(colorArr[0][0]);
+            if (colorArr[0][1].image) setMainImg(colorArr[0][1].image);
+          }
         } else {
           const p = data as Product;
           setProduct(p);
@@ -97,6 +140,96 @@ export default function ProductDetail() {
         }
       });
   }, [id]);
+
+  // Fetch reviews + check review eligibility
+  useEffect(() => {
+    if (!id) return;
+    fetch(`http://localhost:5000/reviews/${id}`)
+      .then(r => r.json())
+      .then(data => setReviews(data || []))
+      .catch(() => {});
+
+    const raw = localStorage.getItem("user");
+    const user = raw ? JSON.parse(raw) : null;
+    if (user?.id) {
+      fetch(`http://localhost:5000/reviews/can-review/${id}?id_KH=${user.id}`)
+        .then(r => r.json())
+        .then(data => {
+          setCanReview(data.canReview);
+          setReviewOrders(data.orders || []);
+          if (data.orders?.length > 0) setReviewOrderId(data.orders[0].id_donhang);
+        })
+        .catch(() => {});
+
+      // Check wishlist
+      fetch(`http://localhost:5000/wishlist/check/${id}?id_KH=${user.id}`)
+        .then(r => r.json())
+        .then(data => setInWishlist(data.inWishlist))
+        .catch(() => {});
+    }
+  }, [id]);
+
+  const handleSubmitReview = async () => {
+    const raw = localStorage.getItem("user");
+    const user = raw ? JSON.parse(raw) : null;
+    if (!user?.id || !reviewOrderId) return;
+
+    setSubmittingReview(true);
+    try {
+      const res = await fetch("http://localhost:5000/reviews", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          id_sanpham: Number(id),
+          id_KH: user.id,
+          id_donhang: reviewOrderId,
+          so_sao: reviewStar,
+          noi_dung: reviewText,
+        }),
+      });
+      const data = await res.json();
+      if (res.ok) {
+        alert("Đánh giá thành công!");
+        setReviewText("");
+        setReviewStar(5);
+        // Refresh reviews + eligibility
+        const rRes = await fetch(`http://localhost:5000/reviews/${id}`);
+        setReviews(await rRes.json());
+        const cRes = await fetch(`http://localhost:5000/reviews/can-review/${id}?id_KH=${user.id}`);
+        const cData = await cRes.json();
+        setCanReview(cData.canReview);
+        setReviewOrders(cData.orders || []);
+      } else {
+        alert(data.message || "Lỗi khi đánh giá");
+      }
+    } catch {
+      alert("Lỗi kết nối server");
+    } finally {
+      setSubmittingReview(false);
+    }
+  };
+
+  const toggleWishlist = async () => {
+    const raw = localStorage.getItem("user");
+    const user = raw ? JSON.parse(raw) : null;
+    if (!user?.id) { alert("Vui lòng đăng nhập để thêm yêu thích"); navigate("/login"); return; }
+
+    try {
+      if (inWishlist) {
+        await fetch(`http://localhost:5000/wishlist/${id}?id_KH=${user.id}`, { method: "DELETE" });
+        setInWishlist(false);
+      } else {
+        await fetch("http://localhost:5000/wishlist", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ id_KH: user.id, id_sanpham: Number(id) }),
+        });
+        setInWishlist(true);
+      }
+    } catch {
+      alert("Lỗi kết nối server");
+    }
+  };
 
   if (!product) return <h2>Loading...</h2>;
 
@@ -166,7 +299,14 @@ export default function ProductDetail() {
                 <button
                   key={c.id}
                   className={`variant-btn ${selectedColor === c.id ? "active" : ""}`}
-                  onClick={() => setSelectedColor(selectedColor === c.id ? null : c.id)}
+                  onClick={() => {
+                    if (selectedColor === c.id) {
+                      setSelectedColor(null);
+                    } else {
+                      setSelectedColor(c.id);
+                      if (c.image) setMainImg(c.image);
+                    }
+                  }}
                 >
                   {c.name}
                 </button>
@@ -193,13 +333,21 @@ export default function ProductDetail() {
           </div>
         )}
 
-        {/* QUANTITY */}
+        {/* QUANTITY + WISHLIST */}
         <div className="variant-row">
           <span className="label">Số lượng:</span>
-          <div className="qty-control">
-            <button className="qty-btn" onClick={() => setQty(qty > 1 ? qty - 1 : 1)}>−</button>
-            <span className="qty-value">{qty}</span>
-            <button className="qty-btn" onClick={() => { const max = stock !== null ? stock : 999; setQty(qty < max ? qty + 1 : qty); }}>+</button>
+          <div className="qty-wish-row">
+            <div className="qty-control">
+              <button className="qty-btn" onClick={() => setQty(qty > 1 ? qty - 1 : 1)}>−</button>
+              <span className="qty-value">{qty}</span>
+              <button className="qty-btn" onClick={() => { const max = stock !== null ? stock : 999; setQty(qty < max ? qty + 1 : qty); }}>+</button>
+            </div>
+            <button className={`btn-wishlist-heart ${inWishlist ? "active" : ""}`} onClick={toggleWishlist} title={inWishlist ? "Bỏ yêu thích" : "Thêm yêu thích"}>
+              <svg className="heart-icon" viewBox="0 0 24 24" width="20" height="20">
+                <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
+              </svg>
+              <span className="wish-label">{inWishlist ? "Đã thích" : "Yêu thích"}</span>
+            </button>
           </div>
         </div>
 
@@ -218,13 +366,18 @@ export default function ProductDetail() {
                 if (qty > sData.so_luong_ton) { alert(`Chỉ còn ${sData.so_luong_ton} sản phẩm trong kho!`); return; }
               } catch {}
 
+              const sizeName = sizes.find(s => s.id === selectedSize)?.name || null;
+              const colorName = colors.find(c => c.id === selectedColor)?.name || null;
+              const variantImage = mainImg || null;
+
               const raw = localStorage.getItem('user');
               const isLoggedIn = !!raw;
-              if (isLoggedIn) {
+              const user = raw ? JSON.parse(raw) : null;
+              if (isLoggedIn && user?.id) {
                 const r = await fetch("http://localhost:5000/cart/add", {
                   method: "POST",
                   headers: { "Content-Type": "application/json" },
-                  body: JSON.stringify({ id_sanpham: product.id_sanpham, quantity: qty }),
+                  body: JSON.stringify({ id_KH: user.id, id_sanpham: product.id_sanpham, quantity: qty, size_name: sizeName, color_name: colorName, variant_image: variantImage }),
                 });
                 if (!r.ok) {
                   const err = await r.json();
@@ -236,11 +389,12 @@ export default function ProductDetail() {
               } else {
                 const cartRaw = localStorage.getItem('cartItems');
                 const cart = cartRaw ? JSON.parse(cartRaw) : [];
-                const existing = cart.find((it: any) => it.id_sanpham === product.id_sanpham);
+                const existing = cart.find((it: any) => it.id_sanpham === product.id_sanpham && it.size_name === sizeName && it.color_name === colorName);
                 if (existing) { existing.quantity += qty; } else {
-                  cart.push({ id: product.id_sanpham, id_sanpham: product.id_sanpham, quantity: qty,
+                  cart.push({ id: Date.now(), id_sanpham: product.id_sanpham, quantity: qty,
                     ten_sanpham: product.ten_sanpham, anh: product.anh,
-                    gia_goc: product.gia_goc, gia_khuyen_mai: product.gia_khuyen_mai });
+                    gia_goc: product.gia_goc, gia_khuyen_mai: product.gia_khuyen_mai,
+                    size_name: sizeName, color_name: colorName, variant_image: variantImage });
                 }
                 localStorage.setItem('cartItems', JSON.stringify(cart));
                 alert("Đã thêm vào giỏ hàng");
@@ -264,13 +418,18 @@ export default function ProductDetail() {
                 if (qty > sData.so_luong_ton) { alert(`Chỉ còn ${sData.so_luong_ton} sản phẩm trong kho!`); return; }
               } catch {}
 
+              const sizeName = sizes.find(s => s.id === selectedSize)?.name || null;
+              const colorName = colors.find(c => c.id === selectedColor)?.name || null;
+              const variantImage = mainImg || null;
+
               const raw = localStorage.getItem('user');
               const isLoggedIn = !!raw;
-              if (isLoggedIn) {
+              const user = raw ? JSON.parse(raw) : null;
+              if (isLoggedIn && user?.id) {
                 const r = await fetch("http://localhost:5000/cart/add", {
                   method: "POST",
                   headers: { "Content-Type": "application/json" },
-                  body: JSON.stringify({ id_sanpham: product.id_sanpham, quantity: qty }),
+                  body: JSON.stringify({ id_KH: user.id, id_sanpham: product.id_sanpham, quantity: qty, size_name: sizeName, color_name: colorName, variant_image: variantImage }),
                 });
                 if (!r.ok) {
                   const err = await r.json();
@@ -283,11 +442,12 @@ export default function ProductDetail() {
               } else {
                 const cartRaw = localStorage.getItem('cartItems');
                 const cart = cartRaw ? JSON.parse(cartRaw) : [];
-                const existing = cart.find((it: any) => it.id_sanpham === product.id_sanpham);
+                const existing = cart.find((it: any) => it.id_sanpham === product.id_sanpham && it.size_name === sizeName && it.color_name === colorName);
                 if (existing) { existing.quantity += qty; } else {
-                  cart.push({ id: product.id_sanpham, id_sanpham: product.id_sanpham, quantity: qty,
+                  cart.push({ id: Date.now(), id_sanpham: product.id_sanpham, quantity: qty,
                     ten_sanpham: product.ten_sanpham, anh: product.anh,
-                    gia_goc: product.gia_goc, gia_khuyen_mai: product.gia_khuyen_mai });
+                    gia_goc: product.gia_goc, gia_khuyen_mai: product.gia_khuyen_mai,
+                    size_name: sizeName, color_name: colorName, variant_image: variantImage });
                 }
                 localStorage.setItem('cartItems', JSON.stringify(cart));
                 window.dispatchEvent(new Event("cartUpdated"));
@@ -430,6 +590,108 @@ export default function ProductDetail() {
           </div>
         )}
       </div>
+    </div>
+
+    {/* ====== REVIEW / ĐÁNH GIÁ SECTION ====== */}
+    <div className="review-section">
+      <h2 className="review-title">
+        Đánh giá sản phẩm
+        {reviews.length > 0 && (
+          <span className="review-summary">
+            <span className="review-avg-stars">
+              {[1, 2, 3, 4, 5].map(s => (
+                <span key={s} className={`star ${s <= Math.round(avgRating) ? "filled" : ""}`}>★</span>
+              ))}
+            </span>
+            <span className="review-avg-num">{avgRating.toFixed(1)}/5</span>
+            <span className="review-count">({reviews.length} đánh giá)</span>
+          </span>
+        )}
+      </h2>
+
+      {/* FORM ĐÁNH GIÁ */}
+      {canReview ? (
+        <div className="review-form">
+          <h4>Viết đánh giá của bạn</h4>
+          {reviewOrders.length > 1 && (
+            <div className="review-order-select">
+              <label>Đơn hàng:</label>
+              <select value={reviewOrderId ?? ""} onChange={e => setReviewOrderId(Number(e.target.value))}>
+                {reviewOrders.map(o => (
+                  <option key={o.id_donhang} value={o.id_donhang}>Đơn #{o.id_donhang}</option>
+                ))}
+              </select>
+            </div>
+          )}
+          <div className="review-stars-input">
+            <label>Đánh giá:</label>
+            <div className="stars-select">
+              {[1, 2, 3, 4, 5].map(s => (
+                <span
+                  key={s}
+                  className={`star-input ${s <= (reviewHover || reviewStar) ? "filled" : ""}`}
+                  onClick={() => setReviewStar(s)}
+                  onMouseEnter={() => setReviewHover(s)}
+                  onMouseLeave={() => setReviewHover(0)}
+                >★</span>
+              ))}
+              <span className="star-label">
+                {reviewStar === 1 && "Rất tệ"}
+                {reviewStar === 2 && "Tệ"}
+                {reviewStar === 3 && "Bình thường"}
+                {reviewStar === 4 && "Tốt"}
+                {reviewStar === 5 && "Tuyệt vời"}
+              </span>
+            </div>
+          </div>
+          <textarea
+            className="review-textarea"
+            placeholder="Chia sẻ cảm nhận của bạn về sản phẩm..."
+            value={reviewText}
+            onChange={e => setReviewText(e.target.value)}
+            rows={4}
+          />
+          <button
+            className="review-submit-btn"
+            onClick={handleSubmitReview}
+            disabled={submittingReview}
+          >
+            {submittingReview ? "Đang gửi..." : "Gửi đánh giá"}
+          </button>
+        </div>
+      ) : (
+        <div className="review-login-notice">
+          <p>💡 Chỉ khách hàng đã mua và nhận sản phẩm này mới có thể đánh giá.</p>
+        </div>
+      )}
+
+      {/* DANH SÁCH ĐÁNH GIÁ */}
+      {reviews.length > 0 ? (
+        <div className="review-list">
+          {reviews.map(r => (
+            <div key={r.id_danhgia} className="review-item">
+              <div className="review-header">
+                <div className="review-avatar">{(r.ho_ten || "K")[0].toUpperCase()}</div>
+                <div className="review-meta">
+                  <span className="review-author">{r.ho_ten || "Khách hàng"}</span>
+                  <span className="review-date">{new Date(r.ngay_tao).toLocaleDateString("vi-VN")}</span>
+                </div>
+                <div className="review-stars">
+                  {[1, 2, 3, 4, 5].map(s => (
+                    <span key={s} className={`star ${s <= r.so_sao ? "filled" : ""}`}>★</span>
+                  ))}
+                </div>
+              </div>
+              {r.noi_dung && <p className="review-content">{r.noi_dung}</p>}
+              <div className="review-badge">✓ Đã mua hàng</div>
+            </div>
+          ))}
+        </div>
+      ) : (
+        <div className="review-empty">
+          <p>Chưa có đánh giá nào cho sản phẩm này.</p>
+        </div>
+      )}
     </div>
     </>
   )

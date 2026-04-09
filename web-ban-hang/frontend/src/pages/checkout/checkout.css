@@ -141,3 +141,90 @@
 
 @keyframes fadeIn { from { opacity:0 } to { opacity:1 } }
 @keyframes popIn { from { opacity:0; transform:scale(0.9) } to { opacity:1; transform:scale(1) } }
+
+/* ===== Saved address card list ===== */
+.saved-addr-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.625rem;
+}
+.saved-addr-card {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  border: 2px solid #e5e7eb;
+  border-radius: 10px;
+  padding: 0.875rem 1rem;
+  cursor: pointer;
+  transition: border-color 0.2s, box-shadow 0.2s;
+  background: #fff;
+}
+.saved-addr-card:hover { border-color: #93c5fd; }
+.saved-addr-card.selected {
+  border-color: #3b82f6;
+  box-shadow: 0 2px 8px rgba(59,130,246,0.12);
+  background: #f0f9ff;
+}
+.saved-addr-card input[type="radio"] {
+  margin-top: 3px;
+  accent-color: #3b82f6;
+  flex-shrink: 0;
+}
+.saved-addr-info { flex: 1; }
+.saved-addr-name { font-weight: 600; font-size: 0.95rem; color: #0f172a; }
+.saved-addr-detail { font-size: 0.85rem; color: #6b7280; margin-top: 2px; }
+.add-addr-link {
+  display: inline-block;
+  margin-top: 0.5rem;
+  color: #2563eb;
+  font-size: 0.875rem;
+  font-weight: 500;
+  text-decoration: none;
+}
+.add-addr-link:hover { text-decoration: underline; }
+.no-addr-msg {
+  text-align: center;
+  padding: 1.5rem;
+  background: #f9fafb;
+  border-radius: 10px;
+  border: 1px dashed #d1d5db;
+}
+.no-addr-msg p { color: #6b7280; margin-bottom: 0.5rem; }
+
+/* ===== Payment buttons side by side ===== */
+.checkout-payment-buttons {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.75rem;
+  margin-top: 1rem;
+}
+.checkout-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  padding: 0.875rem 1rem;
+  border: none;
+  border-radius: 10px;
+  font-size: 0.95rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s, transform 0.1s;
+}
+.checkout-btn:active { transform: scale(0.98); }
+.checkout-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+.checkout-btn-cod {
+  background: #f3f4f6;
+  color: #111827;
+  border: 1px solid #d1d5db;
+}
+.checkout-btn-cod:hover:not(:disabled) { background: #e5e7eb; }
+.checkout-btn-online {
+  background: #2563eb;
+  color: #fff;
+}
+.checkout-btn-online:hover:not(:disabled) { background: #1d4ed8; }
+
+@media(max-width:480px){
+  .checkout-payment-buttons { grid-template-columns: 1fr; }
+}

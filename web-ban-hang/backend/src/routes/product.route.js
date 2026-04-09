@@ -7,13 +7,17 @@ router.get("/all", (req, res) => {
   const sql = `
     SELECT 
       sp.*,
-      COUNT(DISTINCT bt.id_mau) AS mau_sac,
-      COUNT(DISTINCT bt.id_kichco) AS kich_co,
+      GROUP_CONCAT(DISTINCT m.ten_mau ORDER BY m.ten_mau SEPARATOR ',') AS mau_sac,
+      GROUP_CONCAT(DISTINCT k.ten_kichco ORDER BY k.ten_kichco SEPARATOR ',') AS kich_co,
       MAX(anb.url_anh) AS hover_img,
       COALESCE(SUM(bt.so_luong_ton), 0) AS tong_ton_kho
     FROM sanpham sp
     LEFT JOIN sanpham_bienthe bt
       ON sp.id_sanpham = bt.id_sanpham
+    LEFT JOIN mau m
+      ON bt.id_mau = m.id_mau
+    LEFT JOIN kich_co k
+      ON bt.id_kichco = k.id_kichco
     LEFT JOIN anh_sanpham_bienthe anb
       ON anb.id_sanphambienthe = bt.id_sanphambienthe
     GROUP BY sp.id_sanpham
@@ -124,11 +128,19 @@ WHERE sp.id_sanpham = ?
 // Quick stock check endpoint
 router.get("/products/stock/:id", (req, res) => {
   const id = req.params.id;
-  db.query("SELECT id_sanpham, so_luong_ton, trang_thai FROM sanpham WHERE id_sanpham = ?", [id], (err, rows) => {
-    if (err) return res.status(500).json({ message: "DB error" });
-    if (!rows || rows.length === 0) return res.status(404).json({ message: "Sản phẩm không tồn tại" });
-    res.json(rows[0]);
-  });
+  db.query(
+    `SELECT sp.id_sanpham, sp.trang_thai, COALESCE(SUM(bt.so_luong_ton), 0) AS so_luong_ton
+     FROM sanpham sp
+     LEFT JOIN sanpham_bienthe bt ON sp.id_sanpham = bt.id_sanpham
+     WHERE sp.id_sanpham = ?
+     GROUP BY sp.id_sanpham`,
+    [id],
+    (err, rows) => {
+      if (err) return res.status(500).json({ message: "DB error" });
+      if (!rows || rows.length === 0) return res.status(404).json({ message: "Sản phẩm không tồn tại" });
+      res.json(rows[0]);
+    }
+  );
 });
 
 router.get("/products/:id", (req, res) => {
@@ -249,16 +261,19 @@ router.get("/category/:id", (req, res) => {
   const sql = `
     SELECT
       sp.*,
-      COUNT(DISTINCT bt.id_mau) AS mau_sac,
-      COUNT(DISTINCT bt.id_kichco) AS kich_co,
-      MAX(anb.url_anh) AS hover_img
+      GROUP_CONCAT(DISTINCT m.ten_mau ORDER BY m.ten_mau SEPARATOR ',') AS mau_sac,
+      GROUP_CONCAT(DISTINCT k.ten_kichco ORDER BY k.ten_kichco SEPARATOR ',') AS kich_co,
+      MAX(anb.url_anh) AS hover_img,
+      COALESCE(SUM(bt.so_luong_ton), 0) AS tong_ton_kho
     FROM sanpham sp
     LEFT JOIN sanpham_bienthe bt
       ON sp.id_sanpham = bt.id_sanpham
-    LEFT JOIN sanpham_bienthe bt2
-      ON sp.id_sanpham = bt2.id_sanpham
+    LEFT JOIN mau m
+      ON bt.id_mau = m.id_mau
+    LEFT JOIN kich_co k
+      ON bt.id_kichco = k.id_kichco
     LEFT JOIN anh_sanpham_bienthe anb
-      ON anb.id_sanphambienthe = bt2.id_sanphambienthe
+      ON anb.id_sanphambienthe = bt.id_sanphambienthe
     WHERE sp.id_danhmuc = ?
     GROUP BY sp.id_sanpham
   `;

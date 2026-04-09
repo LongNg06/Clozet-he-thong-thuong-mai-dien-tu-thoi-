@@ -50,10 +50,12 @@ router.get("/orders/recent", (req, res) => {
 router.get("/low-stock", (req, res) => {
   const sql = `
     SELECT sp.id_sanpham, sp.ten_sanpham, sp.anh,
-           COALESCE(sp.so_luong_ton, 0) AS tong_ton
+           COALESCE(SUM(bt.so_luong_ton), 0) AS tong_ton
     FROM sanpham sp
-    WHERE COALESCE(sp.so_luong_ton, 0) < 10
-    ORDER BY sp.so_luong_ton ASC
+    LEFT JOIN sanpham_bienthe bt ON sp.id_sanpham = bt.id_sanpham
+    GROUP BY sp.id_sanpham
+    HAVING tong_ton < 10
+    ORDER BY tong_ton ASC
     LIMIT 10
   `;
   db.query(sql, (err, rows) => {
@@ -105,9 +107,11 @@ router.put("/orders/:id/status", (req, res) => {
 router.get("/products", (req, res) => {
   const sql = `
     SELECT sp.*, dm.ten_danhmuc,
-           COALESCE(sp.so_luong_ton, 0) AS tong_ton_kho
+           COALESCE(SUM(bt.so_luong_ton), 0) AS tong_ton_kho
     FROM sanpham sp
     LEFT JOIN danhmuc dm ON sp.id_danhmuc = dm.id_danhmuc
+    LEFT JOIN sanpham_bienthe bt ON sp.id_sanpham = bt.id_sanpham
+    GROUP BY sp.id_sanpham
     ORDER BY sp.id_sanpham DESC
   `;
   db.query(sql, (err, rows) => {
@@ -208,6 +212,60 @@ router.get("/members", (req, res) => {
   db.query(sql, (err, rows) => {
     if (err) return res.status(500).json({ message: "DB error" });
     res.json(rows);
+  });
+});
+
+// ==================== BLOG POSTS CRUD ====================
+// GET all blog posts
+router.get("/blogs", (req, res) => {
+  const sql = `SELECT * FROM baiviet ORDER BY ngay_tao DESC`;
+  db.query(sql, (err, rows) => {
+    if (err) return res.status(500).json({ message: "DB error" });
+    res.json(rows);
+  });
+});
+
+// GET single blog post
+router.get("/blogs/:id", (req, res) => {
+  const { id } = req.params;
+  db.query("SELECT * FROM baiviet WHERE id_baiviet = ?", [id], (err, rows) => {
+    if (err) return res.status(500).json({ message: "DB error" });
+    if (!rows.length) return res.status(404).json({ message: "Không tìm thấy" });
+    res.json(rows[0]);
+  });
+});
+
+// CREATE blog post
+router.post("/blogs", (req, res) => {
+  const { tieu_de, noi_dung, anh_dai_dien, tom_tat, tac_gia, trang_thai } = req.body;
+  if (!tieu_de) return res.status(400).json({ message: "Thiếu tiêu đề" });
+
+  const sql = `INSERT INTO baiviet (tieu_de, noi_dung, anh_dai_dien, tom_tat, tac_gia, trang_thai, ngay_tao)
+               VALUES (?, ?, ?, ?, ?, ?, NOW())`;
+  db.query(sql, [tieu_de, noi_dung || '', anh_dai_dien || '', tom_tat || '', tac_gia || 'Admin', trang_thai ?? 1], (err, result) => {
+    if (err) return res.status(500).json({ message: "DB error", error: err.message });
+    res.json({ id: result.insertId, message: "Thêm thành công" });
+  });
+});
+
+// UPDATE blog post
+router.put("/blogs/:id", (req, res) => {
+  const { id } = req.params;
+  const { tieu_de, noi_dung, anh_dai_dien, tom_tat, tac_gia, trang_thai } = req.body;
+
+  const sql = `UPDATE baiviet SET tieu_de=?, noi_dung=?, anh_dai_dien=?, tom_tat=?, tac_gia=?, trang_thai=? WHERE id_baiviet=?`;
+  db.query(sql, [tieu_de, noi_dung || '', anh_dai_dien || '', tom_tat || '', tac_gia || 'Admin', trang_thai ?? 1, id], (err) => {
+    if (err) return res.status(500).json({ message: "DB error", error: err.message });
+    res.json({ success: true });
+  });
+});
+
+// DELETE blog post
+router.delete("/blogs/:id", (req, res) => {
+  const { id } = req.params;
+  db.query("DELETE FROM baiviet WHERE id_baiviet = ?", [id], (err) => {
+    if (err) return res.status(500).json({ message: "DB error" });
+    res.json({ success: true });
   });
 });
 

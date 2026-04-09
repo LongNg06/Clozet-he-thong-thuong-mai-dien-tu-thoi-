@@ -71,14 +71,15 @@ const ProductCard = ({ product }: { product: Product }) => {
 
     const raw = localStorage.getItem('user');
     const isLoggedIn = !!raw;
+    const user = raw ? JSON.parse(raw) : null;
 
-    if (isLoggedIn) {
+    if (isLoggedIn && user?.id) {
       // Logged-in: save to backend DB (backend also checks stock)
       try {
         const r = await fetch("http://localhost:5000/cart/add", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ id_sanpham: product.id_sanpham, quantity: 1 }),
+          body: JSON.stringify({ id_KH: user.id, id_sanpham: product.id_sanpham, quantity: 1 }),
         });
         if (!r.ok) {
           const err = await r.json();
@@ -155,19 +156,14 @@ const ProductCard = ({ product }: { product: Product }) => {
       {!isOutOfStock && (
         <div className="hover-overlay">
           <div className="hover-row">
-            <button
-              className="add-cart-btn"
-              onClick={handleAddToCart}
-            >
-              🛒Thêm vào giỏ
-            </button>
+         
 
-            <button
+            {/* <button
               className="view-btn"
               onClick={handleView}
             >
-              👁
-            </button>
+              Xem chi tiết
+            </button> */}
           </div>
         </div>
       )}
@@ -175,12 +171,12 @@ const ProductCard = ({ product }: { product: Product }) => {
       <div className="product-info">
 
         <div className="product-meta">
-          {product.mau_sac && (
-            <span>+{product.mau_sac} Màu sắc</span>
+          {product.mau_sac && (Array.isArray(product.mau_sac) ? product.mau_sac.length > 0 : Number(product.mau_sac) > 0) && (
+            <span>+{Array.isArray(product.mau_sac) ? product.mau_sac.length : product.mau_sac} Màu sắc</span>
           )}
 
-          {product.kich_co && (
-            <span>+{product.kich_co} Kích thước</span>
+          {product.kich_co && (Array.isArray(product.kich_co) ? product.kich_co.length > 0 : Number(product.kich_co) > 0) && (
+            <span>+{Array.isArray(product.kich_co) ? product.kich_co.length : product.kich_co} Kích thước</span>
           )}
         </div>
 

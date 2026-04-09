@@ -4,7 +4,7 @@ const Footer = () => {
   return (
     <>
       {/* ================= TOP POLICY ================= */}
-      <div className="footer-policy">
+            <div className="footer-policy">
         <div className="policy-item">
           <img src="/src/components/img2/shipping.png" alt="Miễn phí vận chuyển" />
           <div>
@@ -39,7 +39,7 @@ const Footer = () => {
       </div>
 
       {/* ================= MAIN FOOTER ================= */}
-      <footer className="footer">
+              <footer className="footer">
         <div className="footer-main">
           {/* COL 1 */}
           <div className="footer-col">

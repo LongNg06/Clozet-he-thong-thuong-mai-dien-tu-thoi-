@@ -25,18 +25,30 @@
 }
 
 /* product grid inside category tabs */
-.ct-product-grid {
-  display: grid;
-  grid-template-columns: repeat(6, 1fr);
-  gap: 20px;
+.ct-grid-wrap {
+  position: relative;
   margin-top: 22px;
+}
+.ct-product-grid {
+  display: flex;
+  gap: 20px;
+  overflow-x: auto;
+  scroll-behavior: smooth;
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+.ct-product-grid::-webkit-scrollbar {
+  display: none;
+}
+.ct-product-grid > * {
+  flex: 0 0 calc((100% - 100px) / 6);
 }
 
 @media (max-width: 1200px) {
-  .ct-product-grid { grid-template-columns: repeat(4, 1fr); }
+  .ct-product-grid > * { flex: 0 0 calc((100% - 60px) / 4); }
 }
 @media (max-width: 768px) {
-  .ct-product-grid { grid-template-columns: repeat(2, 1fr); }
+  .ct-product-grid > * { flex: 0 0 calc((100% - 20px) / 2); }
 }
 
 /* wrapper to align tabs and products like other sections */

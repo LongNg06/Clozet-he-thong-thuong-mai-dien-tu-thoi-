@@ -13,6 +13,17 @@ interface SearchResult {
   anh: string;
 }
 
+interface Notification {
+  id: number;
+  id_KH: number;
+  nguoi_gui: "admin" | "user";
+  tieu_de: string;
+  noi_dung: string;
+  parent_id: number | null;
+  da_doc: number;
+  ngay_tao: string;
+}
+
 const Header = () => {
   const navigate = useNavigate();
   const [showBanner, setShowBanner] = useState(true);
@@ -27,12 +38,20 @@ const Header = () => {
   const searchInputRef = useRef<HTMLInputElement>(null);
   const searchTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
+  // Notification state
+  const [notiOpen, setNotiOpen] = useState(false);
+  const [notiCount, setNotiCount] = useState(0);
+  const [notiList, setNotiList] = useState<Notification[]>([]);
+  const [replyingTo, setReplyingTo] = useState<number | null>(null);
+  const [replyText, setReplyText] = useState("");
+  const notiRef = useRef<HTMLDivElement>(null);
+
   useEffect(() => {
     function load() {
       const raw = localStorage.getItem("user");
-      const isLoggedIn = !!raw;
-      if (isLoggedIn) {
-        fetch("http://localhost:5000/cart")
+      const u = raw ? JSON.parse(raw) : null;
+      if (u && u.id) {
+        fetch(`http://localhost:5000/cart?id_KH=${u.id}`)
           .then((r) => r.json())
           .then((data) => {
             const c = (data || []).reduce(
@@ -82,6 +101,71 @@ const Header = () => {
       window.removeEventListener('user:logout', onUserLogout as EventListener);
     };
   }, []);
+
+  // Notification: fetch unread count periodically
+  useEffect(() => {
+    function fetchNotiCount() {
+      const raw = localStorage.getItem("user");
+      const u = raw ? JSON.parse(raw) : null;
+      if (u?.id) {
+        fetch(`http://localhost:5000/notifications/unread-count?id_KH=${u.id}`)
+          .then(r => r.json())
+          .then(d => setNotiCount(d.count || 0))
+          .catch(() => {});
+      }
+    }
+    fetchNotiCount();
+    const timer = setInterval(fetchNotiCount, 15000);
+    return () => clearInterval(timer);
+  }, [user]);
+
+  // Notification: fetch list when dropdown opens
+  useEffect(() => {
+    if (!notiOpen) return;
+    const raw = localStorage.getItem("user");
+    const u = raw ? JSON.parse(raw) : null;
+    if (u?.id) {
+      fetch(`http://localhost:5000/notifications?id_KH=${u.id}`)
+        .then(r => r.json())
+        .then(d => setNotiList(d || []))
+        .catch(() => {});
+      // Mark all as read
+      fetch("http://localhost:5000/notifications/read-all", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id_KH: u.id }),
+      }).then(() => setNotiCount(0)).catch(() => {});
+    }
+  }, [notiOpen]);
+
+  // Click outside to close notification dropdown
+  useEffect(() => {
+    function handleClickOutside(e: MouseEvent) {
+      if (notiRef.current && !notiRef.current.contains(e.target as Node)) {
+        setNotiOpen(false);
+        setReplyingTo(null);
+        setReplyText("");
+      }
+    }
+    if (notiOpen) document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, [notiOpen]);
+
+  const handleReplySubmit = async (parentId: number) => {
+    const raw = localStorage.getItem("user");
+    const u = raw ? JSON.parse(raw) : null;
+    if (!u?.id || !replyText.trim()) return;
+    await fetch("http://localhost:5000/notifications", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ id_KH: u.id, nguoi_gui: "user", tieu_de: "Phản hồi", noi_dung: replyText.trim(), parent_id: parentId }),
+    });
+    setReplyText("");
+    setReplyingTo(null);
+    // Refresh list
+    const res = await fetch(`http://localhost:5000/notifications?id_KH=${u.id}`);
+    setNotiList(await res.json());
+  };
 
   // Focus search input when overlay opens
   useEffect(() => {
@@ -147,14 +231,52 @@ const Header = () => {
             Hotline mua hàng: <strong>0964942121</strong> (8:30 - 21:30, Tất cả
             các ngày trong tuần)
             <span className="divider">|</span>
-            <Link to="#">Liên hệ</Link>
+            <Link to="/lienhe">Liên hệ</Link>
             
           </div>
 
         <div className="top-bar-right">
-  <i className="fa-regular fa-bell"></i>
-  <span>Thông báo của tôi</span>
-  <span className="badge">0</span>
+  {/* NOTIFICATION BELL */}
+  {user && (
+    <div className="noti-bell-wrap" ref={notiRef}>
+      <button className="noti-bell-btn" onClick={() => { if (!user) { navigate("/login"); return; } setNotiOpen(!notiOpen); }}>
+        <i className="fa-regular fa-bell"></i>
+        {notiCount > 0 && <span className="noti-badge">{notiCount}</span>}
+      </button>
+      {notiOpen && (
+        <div className="noti-dropdown">
+          <div className="noti-dropdown-header">
+            <strong>Thông báo</strong>
+          </div>
+          <div className="noti-dropdown-list">
+            {notiList.length === 0 ? (
+              <div className="noti-empty">Chưa có thông báo nào</div>
+            ) : (
+              notiList.map(n => (
+                <div key={n.id} className={`noti-item ${n.nguoi_gui === "user" ? "noti-item-reply" : ""} ${n.da_doc ? "" : "noti-unread"}`}>
+                  <div className="noti-item-sender">{n.nguoi_gui === "admin" ? "🛒 Admin" : "📤 Bạn"}</div>
+                  <div className="noti-item-title">{n.tieu_de}</div>
+                  {n.noi_dung && <div className="noti-item-body">{n.noi_dung}</div>}
+                  <div className="noti-item-time">{new Date(n.ngay_tao).toLocaleString("vi-VN")}</div>
+                  {n.nguoi_gui === "admin" && (
+                    <button className="noti-reply-btn" onClick={() => { setReplyingTo(replyingTo === n.id ? null : n.id); setReplyText(""); }}>
+                      Trả lời
+                    </button>
+                  )}
+                  {replyingTo === n.id && (
+                    <div className="noti-reply-form">
+                      <textarea value={replyText} onChange={e => setReplyText(e.target.value)} placeholder="Nhập phản hồi..." rows={2} />
+                      <button className="noti-reply-send" onClick={() => handleReplySubmit(n.id)}>Gửi</button>
+                    </div>
+                  )}
+                </div>
+              ))
+            )}
+          </div>
+        </div>
+      )}
+    </div>
+  )}
 
         <span style={{ marginLeft: 12 }}>
           {user ? (
@@ -192,110 +314,34 @@ const Header = () => {
           <div className="logo">
             <Link to="/">
               {/* <img src={logo} alt="Torano" /> */}
-              <h1>Clozet</h1>
+                    <h1>Clozet</h1>
             </Link>
           </div>
 
           {/* MENU */}
           <nav className="menu">
             <ul>
-             <li
+             {/* <li
   className="highlight"
   style={{ cursor: "pointer" }}
   onClick={() => navigate("/new-products")}
 >
   Sản phẩm mới
 </li>
-              {/* <li className="has-dropdown">
-                <Link to="#">Danh mục sale</Link>
-                <ul className="dropdown">
-                  <li>
-                    <Link to="#">Sale 70%</Link>
-                  </li>
-                  <li>
-                    <Link to="#">Sale 60%</Link>
-                  </li>
-                  <li>
-                    <Link to="#">Sale 50%</Link>
-                  </li>
-                </ul>
-              </li> */}
-<li className="has-dropdown">
-  <Link to="#">Áo nam</Link>
-  <ul className="dropdown">
-    <li>
-      <Link to="/new-products?category=1">Áo khoác</Link>
-    </li>
-    <li>
-     <Link to="/new-products?category=5">Áo polo</Link>
-    </li>
-    <li>
-      <Link to="/new-products?category=7">Áo sơ mi</Link>
-    </li>
-  </ul>
-</li>
-
-<li className="has-dropdown">
-  <Link to="#">Quần nam</Link>
-  <ul className="dropdown">
-    <li>
-      <Link to="/new-products?category=3">Quần kaki</Link>
-    </li>
-    <li>
-      <Link to="/new-products?category=4">Quần jean</Link>
-    </li>
-    <li>
-      <Link to="/new-products?category=6">Quần âu</Link>
-    </li>
-  </ul>
-</li>
-              {/* <li className="has-dropdown">
-                <Link to="#">Áo nam</Link>
-                <ul className="dropdown">
-                  <li>
-                    <Link to="#">Áo khoác</Link>
-                  </li>
-                  <li>
-                    <Link to="#">Áo polo</Link>
-                  </li>
-                  <li>
-                    <Link to="#">Áo sơ mi</Link>
-                  </li>
-                  <li>
-                    <Link to="#">Áo thun</Link>
-                  </li>
-                  <li>
-                    <Link to="#">Áo len</Link>
-                  </li>
-                </ul>
+          */}
+           <li>
+                <Link to="/">Trang Chủ</Link>
               </li>
-
-              <li className="has-dropdown">
-                <Link to="#">Quần nam</Link>
-                <ul className="dropdown">
-                  <li>
-                    <Link to="#">Quần dài kaki</Link>
-                  </li>
-                  <li>
-                    <Link to="#">Quần gió</Link>
-                  </li>
-                  <li>
-                    <Link to="#">Quần jean</Link>
-                  </li>
-                  <li>
-                    <Link to="#">Quần short</Link>
-                  </li>
-                </ul>
-              </li> */}
-              <li className="has-dropdown">
-                <Link to="#">Phụ kiện</Link>
-                <ul className="dropdown">
-                  <li>
-                    <Link to="/new-products?category=12">Phụ kiện</Link>
-                  </li>
-                </ul>
+               <li>
+                <Link to="/new-products">Sản Phẩm</Link>
               </li>
-
+               <li>
+                <Link to="/lienhe">Liên Hệ</Link>
+              </li>
+               <li>
+                <Link to="/blogs">Bài Viết</Link>
+              </li>
+         
               <li>
                 <Link to="/canh-bao-lua-dao">Cảnh Báo Lừa Đảo</Link>
               </li>
@@ -313,7 +359,10 @@ const Header = () => {
             </button>
 
             {/* USER ICON */}
-            <button className="header-icon-btn" onClick={() => navigate(user ? "/admin" : "/login")}>
+            <button className="header-icon-btn" onClick={() => {
+              if (!user) { navigate("/login"); return; }
+              navigate(user.role === "admin" ? "/admin" : "/account");
+            }}>
               <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                 <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
                 <circle cx="12" cy="7" r="4" />

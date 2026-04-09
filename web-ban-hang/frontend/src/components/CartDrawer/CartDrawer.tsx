@@ -10,6 +10,9 @@ interface CartItem {
   gia_goc?: number | string;
   gia_khuyen_mai?: number | string | null;
   trang_thai?: number;
+  size_name?: string | null;
+  color_name?: string | null;
+  variant_image?: string | null;
 }
 
 function getUser() {
@@ -35,10 +38,10 @@ export default function CartDrawer() {
   const [items, setItems] = useState<CartItem[]>([]);
 
   function load() {
-    const loggedIn = !!getUser();
-    if (loggedIn) {
+    const user = getUser();
+    if (user && user.id) {
       // Logged in: fetch from backend DB
-      fetch("http://localhost:5000/cart")
+      fetch(`http://localhost:5000/cart?id_KH=${user.id}`)
         .then((r) => r.json())
         .then((d: CartItem[]) => setItems(d || []))
         .catch(() => setItems([]));
@@ -63,11 +66,12 @@ export default function CartDrawer() {
 
   function updateQuantity(id: number, newQty: number) {
     if (newQty < 1) return;
-    if (!!getUser()) {
+    const user = getUser();
+    if (user && user.id) {
       fetch("http://localhost:5000/cart/update", {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ id, quantity: newQty }),
+        body: JSON.stringify({ id, id_KH: user.id, quantity: newQty }),
       })
         .then(() => load())
         .catch(() => load());
@@ -82,8 +86,9 @@ export default function CartDrawer() {
   }
 
   function removeItem(id: number) {
-    if (!!getUser()) {
-      fetch(`http://localhost:5000/cart/remove/${id}`, { method: 'DELETE' })
+    const user = getUser();
+    if (user && user.id) {
+      fetch(`http://localhost:5000/cart/remove/${id}?id_KH=${user.id}`, { method: 'DELETE' })
         .then(() => load())
         .catch(() => load());
     } else {
@@ -130,12 +135,15 @@ export default function CartDrawer() {
         {items.length === 0 ? <p>Không có sản phẩm</p> : (
           items.map(it => {
             const itemKey = it.id || it.id_sanpham;
-            const imgSrc = it.anh?.startsWith('http') ? it.anh : `http://localhost:5000${it.anh}`;
+            const rawImg = it.variant_image || it.anh || '';
+            const imgSrc = rawImg.startsWith('http') ? rawImg : `http://localhost:5000${rawImg}`;
+            const variantInfo = [it.size_name, it.color_name].filter(Boolean).join(' / ');
             return (
             <div key={itemKey} className="drawer-item">
               <img src={imgSrc} alt={it.ten_sanpham} />
               <div className="meta">
                 <div className="name">{it.ten_sanpham}</div>
+                {variantInfo && <div className="variant-info">{variantInfo}</div>}
                 <div className="price">{Number(it.gia_khuyen_mai || it.gia_goc).toLocaleString('vi-VN')}₫</div>
                 <div className="qty-controls">
                   <button className="qty-btn" onClick={() => updateQuantity(it.id || it.id_sanpham, (it.quantity || 0) - 1)}>-</button>

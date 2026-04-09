@@ -1,6 +1,6 @@
 "use client";
 import { useLocation, useNavigate } from "react-router-dom";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import ProductCard from "../../components/Product/ProductCart";
 import "./newProduct.css";
 
@@ -25,7 +25,7 @@ interface Category {
 }
 
 const SORT_OPTIONS = [
-
+  { value: "featured", label: "Sản Phẩm Mới" },
   { value: "price-asc", label: "Giá: Tăng dần" },
   { value: "price-desc", label: "Giá: Giảm dần" },
   { value: "name-asc", label: "Tên: A-Z" },
@@ -45,7 +45,7 @@ const NewProduct = () => {
   const navigate = useNavigate();
 
   // FILTER
-  const [price, setPrice] = useState(3000000);
+  const [price, setPrice] = useState(1000000);
   const [selectedSize, setSelectedSize] = useState<string | null>(null);
   const [selectedColor, setSelectedColor] = useState<string | null>(null);
   const [sortBy, setSortBy] = useState("featured");
@@ -55,7 +55,9 @@ const NewProduct = () => {
   // track which category is active (null = all)
   const [activeCategory, setActiveCategory] = useState<number | null>(null);
 
-  const SIZES_LIST = ["S", "M", "L", "XL", "XXL", "36", "37", "38", "39"];
+  const sortRef = useRef<HTMLSelectElement>(null);
+
+  const SIZES_LIST = ["S", "M", "L", "XL", "XXL"];
 
   const COLORS_LIST = [
     "Đen", "Xám đậm", "Nâu",
@@ -189,6 +191,14 @@ const NewProduct = () => {
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [location.search]);
+
+  // ===== FOCUS SORT SELECT ON MOUNT =====
+  useEffect(() => {
+    if (sortRef.current) {
+      sortRef.current.focus();
+      sortRef.current.scrollIntoView({ behavior: "smooth", block: "center" });
+    }
+  }, []);
 
   // ===== LOAD CATEGORIES AND AUTO LOAD ALL PRODUCTS ON MOUNT =====
   useEffect(() => {
@@ -359,13 +369,13 @@ const NewProduct = () => {
             className="price-slider"
             type="range"
             min={0}
-            max={3000000}
+            max={1000000}
             value={price}
             onChange={(e) => setPrice(Number(e.target.value))}
           />
           <div className="price-label">
             <span>0đ</span>
-            <span>3,000,000đ</span>
+            <span>1,000,000đ</span>
           </div>
         </div>
 
@@ -412,7 +422,7 @@ const NewProduct = () => {
           </h2>
           <div className="sort-bar">
             <label>Sắp xếp theo</label>
-            <select value={sortBy} onChange={(e) => setSortBy(e.target.value)}>
+            <select ref={sortRef} value={sortBy} onChange={(e) => setSortBy(e.target.value)}>
               {SORT_OPTIONS.map((opt) => (
                 <option key={opt.value} value={opt.value}>
                   {opt.label}

@@ -311,6 +311,26 @@
 .form-group textarea { resize: vertical; min-height: 80px; }
 .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
 
+/* Stock toggle */
+.stock-toggle {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  cursor: pointer;
+  margin-top: 6px;
+}
+.stock-toggle input[type="checkbox"] {
+  width: 18px;
+  height: 18px;
+  accent-color: #16a34a;
+  cursor: pointer;
+}
+.stock-toggle-label {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text);
+}
+
 /* ===== MODAL ===== */
 .modal-overlay {
   position: fixed;
@@ -397,3 +417,88 @@
   .dashboard-grid { grid-template-columns: 1fr; }
   .form-row { grid-template-columns: 1fr; }
 }
+
+/* ===== ADMIN BELL ICON ===== */
+.admin-bell-btn {
+  position: relative;
+  background: none;
+  border: none;
+  font-size: 22px;
+  cursor: pointer;
+  padding: 4px 8px;
+  line-height: 1;
+  transition: transform .15s;
+}
+.admin-bell-btn:hover { transform: scale(1.15); }
+.admin-bell-badge {
+  position: absolute;
+  top: -4px;
+  right: -2px;
+  background: #e74c3c;
+  color: #fff;
+  font-size: 10px;
+  font-weight: 700;
+  border-radius: 50%;
+  min-width: 17px;
+  height: 17px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* ===== ADMIN NOTIFICATIONS PAGE ===== */
+.admin-noti-item {
+  padding: 14px 16px;
+  border-bottom: 1px solid rgba(255,255,255,.06);
+  border-radius: 8px;
+  margin-bottom: 6px;
+  transition: background .15s;
+}
+.admin-noti-item:hover { background: rgba(255,255,255,.04); }
+.admin-noti-user { border-left: 3px solid var(--blue); }
+.admin-noti-admin { border-left: 3px solid var(--green); opacity: .8; }
+.admin-noti-meta {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 4px;
+}
+.admin-noti-sender {
+  font-weight: 600;
+  font-size: 13px;
+  color: var(--blue);
+}
+.admin-noti-admin .admin-noti-sender { color: var(--green); }
+.admin-noti-date {
+  font-size: 11px;
+  color: var(--muted);
+}
+.admin-noti-new {
+  background: #e74c3c;
+  color: #fff;
+  font-size: 10px;
+  font-weight: 700;
+  padding: 2px 7px;
+  border-radius: 10px;
+}
+.admin-noti-title {
+  font-weight: 600;
+  font-size: 14px;
+  margin-bottom: 2px;
+}
+.admin-noti-body {
+  font-size: 13px;
+  color: var(--muted);
+  line-height: 1.4;
+}
+.admin-noti-reply-btn {
+  background: none;
+  border: none;
+  color: var(--blue);
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  margin-top: 6px;
+  padding: 0;
+}
+.admin-noti-reply-btn:hover { text-decoration: underline; }

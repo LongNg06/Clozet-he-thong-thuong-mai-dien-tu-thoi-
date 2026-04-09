@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import ProductCard from "../Product/ProductCart";
 import "./BoSuuTapMuaHe.css";
 
@@ -18,6 +18,9 @@ export default function BoSuuTapMuaHe({
   image = "/danhmuc_img/bosuutap_he.png",
 }: { categoryIds?: number[]; image?: string }) {
   const [products, setProducts] = useState<Product[]>([]);
+  const trackRef = useRef<HTMLDivElement>(null);
+  const [canScrollLeft, setCanScrollLeft] = useState(false);
+  const [canScrollRight, setCanScrollRight] = useState(false);
 
   useEffect(() => {
     // fetch products for each category and merge
@@ -35,10 +38,27 @@ export default function BoSuuTapMuaHe({
         }));
         // dedupe by id
         const unique = Array.from(new Map(mapped.map((m) => [m.id_sanpham, m])).values());
-        setProducts(unique.slice(0, 6));
+        setProducts(unique);
       })
       .catch((err) => console.error("Lỗi load bộ sưu tập mùa hè:", err));
   }, [categoryIds]);
+
+  function updateArrows() {
+    const el = trackRef.current;
+    if (!el) return;
+    setCanScrollLeft(el.scrollLeft > 1);
+    setCanScrollRight(el.scrollLeft + el.clientWidth < el.scrollWidth - 1);
+  }
+
+  useEffect(() => {
+    requestAnimationFrame(updateArrows);
+  }, [products]);
+
+  function scrollTrack(dir: number) {
+    const el = trackRef.current;
+    if (!el) return;
+    el.scrollBy({ left: dir * (el.clientWidth + 20), behavior: "smooth" });
+  }
 
   return (
     <section className="bs-section">
@@ -46,11 +66,19 @@ export default function BoSuuTapMuaHe({
         <img src={`http://localhost:5000${image}`} alt="Bộ sưu tập Mùa Hè" />
       </div>
 
-      <div className="product-grid">
-        {products.length === 0 ? (
-          <p className="empty-text">Không có sản phẩm</p>
-        ) : (
-          products.map((p) => <ProductCard key={p.id_sanpham} product={p as any} />)
+      <div className="product-grid-wrap">
+        {canScrollLeft && (
+          <button className="grid-arrow grid-arrow-left" onClick={() => scrollTrack(-1)}>‹</button>
+        )}
+        <div className="product-grid" ref={trackRef} onScroll={updateArrows}>
+          {products.length === 0 ? (
+            <p className="empty-text">Không có sản phẩm</p>
+          ) : (
+            products.map((p) => <ProductCard key={p.id_sanpham} product={p as any} />)
+          )}
+        </div>
+        {canScrollRight && (
+          <button className="grid-arrow grid-arrow-right" onClick={() => scrollTrack(1)}>›</button>
         )}
       </div>
     </section>

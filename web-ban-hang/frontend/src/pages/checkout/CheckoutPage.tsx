@@ -17,6 +17,8 @@ export default function CheckoutPage() {
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [selectedShipping, setSelectedShipping] = useState('standard')
   const [lockedShipping, setLockedShipping] = useState(false)
+  const [savedAddresses, setSavedAddresses] = useState<any[]>([]);
+  const [selectedAddrId, setSelectedAddrId] = useState<number | null>(null);
 
   // Check if user is logged in
   const getUser = () => {
@@ -29,9 +31,9 @@ export default function CheckoutPage() {
   const isLoggedIn = !!user;
 
   useEffect(() => {
-    if (isLoggedIn) {
+    if (isLoggedIn && user?.id) {
       // Logged in: fetch from backend cart
-      fetch('http://localhost:5000/cart')
+      fetch(`http://localhost:5000/cart?id_KH=${user.id}`)
         .then((r) => r.json())
         .then((data) => setCartItems(Array.isArray(data) ? data : []))
         .catch(() => {
@@ -70,12 +72,13 @@ export default function CheckoutPage() {
   const getItemQuantity = (it: any) => Number(it.quantity || it.so_luong || it.qty || 1)
   const getItemPrice = (it: any) => Number(it.price || it.gia_khuyen_mai || it.gia_goc || it.unit_price || 0)
   const getItemImage = (it: any) => {
-    const src = it.image || it.anh || it.img || it.thumbnail || ''
+    const src = it.variant_image || it.image || it.anh || it.img || it.thumbnail || ''
     if (!src) return '/assets/img/default.jpg'
     if (typeof src === 'string' && (src.startsWith('http') || src.startsWith('data:'))) return src
     if (typeof src === 'string' && src.startsWith('/')) return `http://localhost:5000${src}`
     return src
   }
+  const getItemVariant = (it: any) => [it.size_name, it.color_name].filter(Boolean).join(' / ')
 
   const subtotal = cartItems.reduce((s, it) => s + getItemPrice(it) * getItemQuantity(it), 0);
 
@@ -102,6 +105,11 @@ export default function CheckoutPage() {
       if (!name) setName(user.name || user.ho_ten || user.fullname || '')
       if (!email) setEmail(user.email || '')
       if (!phone) setPhone(user.phone || user.sdt || '')
+      // Load saved addresses
+      fetch(`http://localhost:5000/user/addresses?id_KH=${user.id}`)
+        .then(r => r.json())
+        .then(d => setSavedAddresses(Array.isArray(d) ? d : []))
+        .catch(() => {});
     }
   }, [])
 
@@ -124,9 +132,7 @@ export default function CheckoutPage() {
     else if (!email.includes('@')) e.email = "Email phải chứa ký tự '@'"
     if (!phone.trim()) e.phone = 'Vui lòng nhập số điện thoại'
     else if (!/^\d{10}$/.test(phone.replace(/\s+/g, ''))) e.phone = 'Số điện thoại phải có đúng 10 chữ số'
-    if (!address.trim()) e.address = 'Vui lòng nhập địa chỉ giao hàng'
-    if (!city.trim()) e.city = 'Vui lòng nhập tỉnh/thành phố'
-    // district removed
+    if (!selectedAddrId) e.address = 'Vui lòng chọn địa chỉ giao hàng'
     setErrors(e)
     return Object.keys(e).length === 0
   }
@@ -259,7 +265,7 @@ export default function CheckoutPage() {
           </svg>
           Quay lại giỏ hàng
         </a>
-        <h1 className="text-2xl font-bold">Xác nhận thanh toán</h1>
+        <h1 className="text-2xl font-bold">Xác nhận đơn hàng</h1>
         <div className="w-24" />
       </div>
 
@@ -285,42 +291,41 @@ export default function CheckoutPage() {
 
             {/* Address fields */}
             <h3 className="checkout-section-title">Địa chỉ giao hàng</h3>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Địa chỉ cụ thể</label>
-              <input value={address} onChange={(e) => setAddress(e.target.value)} placeholder="Số nhà, tên đường..." className="w-full border rounded-lg px-3 py-2" />
-              {errors.address && <p className="text-red-500 text-sm mt-1">{errors.address}</p>}
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Phường/Xã</label>
-              <input value={ward} onChange={(e) => setWard(e.target.value)} className="w-full border rounded-lg px-3 py-2" />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Tỉnh/Thành phố</label>
-              <input value={city} onChange={(e) => setCity(e.target.value)} className="w-full border rounded-lg px-3 py-2" />
-              {errors.city && <p className="text-red-500 text-sm mt-1">{errors.city}</p>}
-            </div>
 
-            <div>
-              <h3 className="text-sm font-medium text-gray-700 mb-2">
-                Phương thức thanh toán
-              </h3>
-            </div>
-
-            <div>
-              <button
-                type="button"
-                onClick={handleVnPay}
-                disabled={loading || cartItems.length === 0}
-                className="w-full py-3 rounded-lg text-white bg-blue-600"
-              >
-                {loading ? "Đang xử lý..." : "Thanh toán VNPay"}
-              </button>
-            </div>
-            <div>
-              <button onClick={handleCod} disabled={loading || cartItems.length === 0} className="w-full py-3 rounded-lg bg-gray-200 cod-btn">
-                {loading ? "Đang xử lý..." : "Đặt hàng (COD)"}
-              </button>
-            </div>
+            {isLoggedIn && savedAddresses.length > 0 ? (
+              <div className="saved-addr-list">
+                {savedAddresses.map((a: any) => (
+                  <label
+                    key={a.id_diachi}
+                    className={`saved-addr-card ${selectedAddrId === a.id_diachi ? 'selected' : ''}`}
+                    onClick={() => {
+                      setSelectedAddrId(a.id_diachi);
+                      setName(a.ten_nguoinhan || name);
+                      setPhone(a.so_dien_thoai || phone);
+                      setAddress(a.dia_chi_cu_the || '');
+                      setWard(a.phuong_xa || '');
+                      setDistrict(a.quan_huyen || '');
+                      setCity(a.tinh_thanh || '');
+                    }}
+                  >
+                    <input type="radio" name="saved-addr" checked={selectedAddrId === a.id_diachi} readOnly />
+                    <div className="saved-addr-info">
+                      <div className="saved-addr-name">{a.ten_nguoinhan} — {a.so_dien_thoai}</div>
+                      <div className="saved-addr-detail">
+                        {[a.dia_chi_cu_the, a.phuong_xa, a.quan_huyen, a.tinh_thanh].filter(Boolean).join(', ')}
+                      </div>
+                    </div>
+                  </label>
+                ))}
+                {!selectedAddrId && <p className="text-red-500 text-sm mt-1">Vui lòng chọn địa chỉ giao hàng</p>}
+                <a href="/account" className="add-addr-link">+ Thêm địa chỉ mới tại trang tài khoản</a>
+              </div>
+            ) : (
+              <div className="no-addr-msg">
+                <p>Bạn chưa có địa chỉ nào được lưu.</p>
+                <a href="/account" className="add-addr-link">Thêm địa chỉ tại trang tài khoản →</a>
+              </div>
+            )}
           </div>
         </div>
 
@@ -334,6 +339,7 @@ export default function CheckoutPage() {
                 </div>
                 <div className="flex-1">
                   <div className="font-medium text-gray-800">{getItemName(item)}</div>
+                  {getItemVariant(item) && <div style={{ fontSize: '0.8rem', color: '#888' }}>{getItemVariant(item)}</div>}
                   <div className="text-sm text-gray-500">Số lượng: {getItemQuantity(item)}</div>
                 </div>
                 <div className="text-right font-semibold">{(getItemPrice(item) * getItemQuantity(item)).toLocaleString('vi-VN')}₫</div>
@@ -365,6 +371,26 @@ export default function CheckoutPage() {
             <div className="flex justify-between text-lg font-bold pt-2 border-t border-gray-200">
               <span>Tổng cộng</span>
               <span className="text-blue-600">{total.toLocaleString('vi-VN')}₫</span>
+            </div>
+
+            {/* Payment buttons */}
+            <div className="checkout-payment-buttons">
+              <button
+                type="button"
+                onClick={handleCod}
+                disabled={loading || cartItems.length === 0}
+                className="checkout-btn checkout-btn-cod"
+              >
+                {loading ? 'Đang xử lý...' : '💵 Đặt hàng (COD)'}
+              </button>
+              <button
+                type="button"
+                onClick={handleVnPay}
+                disabled={loading || cartItems.length === 0}
+                className="checkout-btn checkout-btn-online"
+              >
+                {loading ? 'Đang xử lý...' : '💳 Thanh toán Online'}
+              </button>
             </div>
           </div>
         </div>

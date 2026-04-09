@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import ProductCard from "../Product/ProductCart";
 import "./CategoryTabs.css";
 
@@ -20,6 +20,9 @@ export default function CategoryTabs({
 }: Props) {
   const [active, setActive] = useState<string>(defaultActive || items[0] || "");
   const [products, setProducts] = useState<any[]>([]);
+  const trackRef = useRef<HTMLDivElement>(null);
+  const [canScrollLeft, setCanScrollLeft] = useState(false);
+  const [canScrollRight, setCanScrollRight] = useState(false);
 
   useEffect(() => {
     // fetch products for default active if map provided
@@ -36,10 +39,26 @@ export default function CategoryTabs({
           ...p,
           anh: typeof p.anh === "string" && /^(https?:)?\/\//.test(p.anh) ? p.anh : `http://localhost:5000${p.anh}`,
         }));
-        // limit to 6 products to display on a single row
-        setProducts(mapped.slice(0, 6));
+        setProducts(mapped);
       })
       .catch((err) => console.error("Lỗi load theo danh mục:", err));
+  }
+
+  function updateArrows() {
+    const el = trackRef.current;
+    if (!el) return;
+    setCanScrollLeft(el.scrollLeft > 1);
+    setCanScrollRight(el.scrollLeft + el.clientWidth < el.scrollWidth - 1);
+  }
+
+  useEffect(() => {
+    requestAnimationFrame(updateArrows);
+  }, [products]);
+
+  function scrollTrack(dir: number) {
+    const el = trackRef.current;
+    if (!el) return;
+    el.scrollBy({ left: dir * (el.clientWidth + 20), behavior: "smooth" });
   }
 
   const handleClick = (t: string) => {
@@ -48,22 +67,31 @@ export default function CategoryTabs({
     const id = categoryMap?.[t];
     if (id) fetchForCategory(id);
     else setProducts([]);
+    if (trackRef.current) trackRef.current.scrollLeft = 0;
   };
 
   return (
     <div className={`category-tabs-wrapper ${className || ""}`}>
       <div className={`category-tabs ${className || ""}`}>
         {items.map((t) => (
-          <div key={t} className={`tab ${active === t ? "active" : ""}`} onClick={() => handleClick(t)}>
+          <div key={t} className={`tab ${active === t ? "active" : ""}`} onClick={() => handleClick(t)} translate="no">
             {t}
           </div>
         ))}
       </div>
 
       {/* product grid for selected category */}
-      <div className="ct-product-grid">
-        {products.length === 0 ? null : (
-          products.map((p) => <ProductCard key={p.id_sanpham} product={p} />)
+      <div className="ct-grid-wrap">
+        {canScrollLeft && (
+          <button className="grid-arrow grid-arrow-left" onClick={() => scrollTrack(-1)}>‹</button>
+        )}
+        <div className="ct-product-grid" ref={trackRef} onScroll={updateArrows}>
+          {products.length === 0 ? null : (
+            products.map((p) => <ProductCard key={p.id_sanpham} product={p} />)
+          )}
+        </div>
+        {canScrollRight && (
+          <button className="grid-arrow grid-arrow-right" onClick={() => scrollTrack(1)}>›</button>
         )}
       </div>
     </div>

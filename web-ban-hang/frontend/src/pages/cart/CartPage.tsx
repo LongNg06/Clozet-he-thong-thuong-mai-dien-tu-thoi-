@@ -6,11 +6,26 @@ export default function CartPage() {
   const [items, setItems] = useState<any[]>([]);
   const navigate = useNavigate();
 
+  function getUser() {
+    try {
+      const raw = localStorage.getItem('user');
+      return raw ? JSON.parse(raw) : null;
+    } catch { return null; }
+  }
+
   function load() {
-    fetch("http://localhost:5000/cart")
-      .then((r) => r.json())
-      .then((data) => setItems(data || []))
-      .catch(() => setItems([]));
+    const user = getUser();
+    if (user && user.id) {
+      fetch(`http://localhost:5000/cart?id_KH=${user.id}`)
+        .then((r) => r.json())
+        .then((data) => setItems(data || []))
+        .catch(() => setItems([]));
+    } else {
+      try {
+        const raw = localStorage.getItem('cartItems') || '[]';
+        setItems(JSON.parse(raw));
+      } catch { setItems([]); }
+    }
   }
 
   useEffect(() => {
@@ -26,16 +41,22 @@ export default function CartPage() {
         <p>Giỏ hàng trống</p>
       ) : (
         <div className="cart-list">
-          {items.map((it) => (
+          {items.map((it) => {
+            const rawImg = it.variant_image || it.anh || '';
+            const imgSrc = rawImg.startsWith('http') ? rawImg : `http://localhost:5000${rawImg}`;
+            const variantInfo = [it.size_name, it.color_name].filter(Boolean).join(' / ');
+            return (
             <div key={it.id} className="cart-item">
-              <img src={it.anh?.startsWith('http')? it.anh : `http://localhost:5000${it.anh}`} alt={it.ten_sanpham} />
+              <img src={imgSrc} alt={it.ten_sanpham} />
               <div className="info">
                 <div className="name">{it.ten_sanpham}</div>
+                {variantInfo && <div className="variant-info" style={{ fontSize: '0.85rem', color: '#888' }}>{variantInfo}</div>}
                 <div>Số lượng: {it.quantity}</div>
                 <div className="price">{Number(it.gia_khuyen_mai || it.gia_goc).toLocaleString('vi-VN')}₫</div>
               </div>
             </div>
-          ))}
+            );
+          })}
         </div>
       )}
 
