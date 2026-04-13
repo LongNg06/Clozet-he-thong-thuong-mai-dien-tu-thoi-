@@ -18,11 +18,12 @@ router.post("/create-payment", async (req, res) => {
         });
 
         const amount = req.body.amount || 100000;
+        console.log("[VNPay] Số tiền nhận từ frontend:", amount);
 
         const tomorrow = new Date(Date.now() + 24 * 60 * 60 * 1000);
 
         const paymentUrl = await vnpay.buildPaymentUrl({
-            vnp_Amount: amount * 100,
+            vnp_Amount: amount * 10,
             vnp_IpAddr: req.ip || "127.0.0.1",
             vnp_TxnRef: Date.now().toString(),
             vnp_OrderInfo: "Thanh toán test",
