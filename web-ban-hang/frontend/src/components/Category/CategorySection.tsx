@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { Swiper, SwiperSlide } from "swiper/react";
 import { Navigation } from "swiper/modules";
 
@@ -13,6 +14,8 @@ interface Category {
 
 function CategorySection() {
   const [categories, setCategories] = useState<Category[]>([]);
+
+  const navigate = useNavigate();
 
   useEffect(() => {
     fetch("http://localhost:5000/categories")
@@ -56,7 +59,17 @@ function CategorySection() {
               />
               <div className="category-overlay">
                 <span>{cat.ten_danhmuc}</span>
-                <div className="arrow-btn">→</div>
+                <div
+                  className="arrow-btn"
+                  role="button"
+                  tabIndex={0}
+                  onClick={() => navigate(`/new-products?category=${cat.id_danhmuc}`)}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter" || e.key === " ") navigate(`/new-products?category=${cat.id_danhmuc}`);
+                  }}
+                >
+                  →
+                </div>
               </div>
             </div>
           </SwiperSlide>

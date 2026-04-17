@@ -4,9 +4,9 @@ const Footer = () => {
   return (
     <>
       {/* ================= TOP POLICY ================= */}
-      <div className="footer-policy">
+            <div className="footer-policy">
         <div className="policy-item">
-          <img src="/src/components/img2/shipping.png" alt="Miễn phí vận chuyển" />
+          <img src="https://clozet.io.vn/img2/shipping.png" alt="Miễn phí vận chuyển" />
           <div>
             <h4>Miễn phí vận chuyển</h4>
             <p>Áp dụng cho mọi đơn hàng từ 500k</p>
@@ -14,7 +14,7 @@ const Footer = () => {
         </div>
 
         <div className="policy-item">
-          <img src="/src/components/img2/stroge.png" alt="Đổi hàng dễ dàng" />
+          <img src="https://clozet.io.vn/img2/stroge.png" alt="Đổi hàng dễ dàng" />
           <div>
             <h4>Đổi hàng dễ dàng</h4>
             <p>7 ngày đổi hàng vì bất kì lý do gì</p>
@@ -22,7 +22,7 @@ const Footer = () => {
         </div>
 
         <div className="policy-item">
-          <img src="/src/components/img2/cskh.png" alt="Hỗ trợ nhanh chóng" />
+          <img src="https://clozet.io.vn/img2/cskh.png" alt="Hỗ trợ nhanh chóng" />
           <div>
             <h4>Hỗ trợ nhanh chóng</h4>
             <p>HOTLINE 24/7 : 0964942121</p>
@@ -30,7 +30,7 @@ const Footer = () => {
         </div>
 
         <div className="policy-item">
-          <img src="/src/components/img2/payment.png" alt="Thanh toán đa dạng" />
+          <img src="https://clozet.io.vn/img2/payment.png" alt="Thanh toán đa dạng" />
           <div>
             <h4>Thanh toán đa dạng</h4>
             <p>COD, Napas, Visa, Chuyển khoản</p>
@@ -39,7 +39,7 @@ const Footer = () => {
       </div>
 
       {/* ================= MAIN FOOTER ================= */}
-      <footer className="footer">
+              <footer className="footer">
         <div className="footer-main">
           {/* COL 1 */}
           <div className="footer-col">
@@ -66,11 +66,11 @@ const Footer = () => {
 
             <h4>Phương thức thanh toán</h4>
             <div className="payment">
-              <img src="src/components/img2/vnpay.png" alt="VNPay" />
-              <img src="src/components/img2/zalo.png" alt="ZaloPay" />
-              <img src="src/components/img2/moca.png" alt="Moca" />
-              <img src="src/components/img2/napas.png" alt="Napas" />
-              <img src="src/components/img2/visa.png" alt="Visa" />
+              <img src="https://clozet.io.vn/img2/vnpay.png" alt="VNPay" />
+              <img src="https://clozet.io.vn/img2/zalo.png" alt="ZaloPay" />
+              <img src="https://clozet.io.vn/img2/moca.png" alt="Moca" />
+              <img src="https://clozet.io.vn/img2/napas.png" alt="Napas" />
+              <img src="https://clozet.io.vn/img2/visa.png" alt="Visa" />
             </div>
           </div>
 
@@ -111,7 +111,7 @@ const Footer = () => {
 
             <img
               className="bo-cong-thuong"
-              src="src/components/img2/dathongbao.png"
+              src="https://clozet.io.vn/img2/dathongbao.png"
               alt="Đã thông báo Bộ Công Thương"
             />
           </div>

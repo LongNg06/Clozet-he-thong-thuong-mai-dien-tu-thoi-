@@ -55,11 +55,16 @@ function SaleBanner() {
               key={product.id_sanpham}
               product={product}
             />
+            
           ))
+          
         )}
+        {/* tabs removed - use standalone CategoryTabs component instead */}
+        
       </div>
 
     </section>
+    
   );
 }
 

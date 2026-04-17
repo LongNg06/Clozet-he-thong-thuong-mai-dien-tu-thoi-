@@ -1,0 +1,46 @@
+.cart-drawer {
+  position:fixed;
+  right:-420px;
+  top:0;
+  height:100%;
+  width:380px;
+  background:#fff;
+  box-shadow: -6px 0 24px rgba(0,0,0,0.12);
+  transition: right 0.7s ease;
+  z-index:9999;
+  display:flex;
+  flex-direction:column;
+}
+.cart-drawer.open { right:0 }
+
+.cart-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.35);
+  z-index: 9990;
+  transition: opacity 0.3s ease;
+}
+
+/* Free shipping progress */
+.free-ship { padding: 12px 16px; border-bottom: 1px solid #f2f2f2; background:#fff }
+.free-ship-text { font-size:13px; color:#333; margin-bottom:8px }
+.free-ship-text strong { color:#2e7d32 }
+.progress-bar { position:relative; height:12px; background:#e9f7ef; border-radius:8px; overflow:hidden }
+.progress-fill { position:absolute; left:0; top:0; bottom:0; background:#2e7d32; width:0; transition: width 0.5s ease }
+.progress-icon { position:absolute; right:8px; top:-8px; background:#fff; border-radius:50%; padding:4px; font-size:16px; box-shadow:0 1px 4px rgba(0,0,0,0.08) }
+
+.drawer-header { display:flex; justify-content:space-between; align-items:center; padding:16px; border-bottom:1px solid #eee }
+.drawer-body { padding:12px; overflow:auto; flex:1 }
+.drawer-item { display:flex; gap:8px; align-items:center; padding:8px 0; border-bottom:1px solid #f2f2f2; position:relative }
+.drawer-item img { width:64px; height:64px; object-fit:cover; border-radius:6px }
+.meta { flex:1 }
+.meta .name { font-weight:600; margin-bottom:6px; font-size:14px }
+.meta .variant-info { font-size: 12px; color: #999; margin-bottom: 4px }
+.meta .price { color:#777; margin-bottom:6px; font-size:13px }
+.qty-controls { display:inline-flex; align-items:center; gap:6px; margin-bottom:6px }
+.qty-btn { width:20px; height:20px; border-radius:4px; border:1px solid #ddd; background:#fff; font-size:12px; padding:0; line-height:18px }
+.qty { min-width:18px; text-align:center; font-size:13px }
+.item-total { color:#222; font-weight:600; font-size:13px }
+.remove-btn { position:absolute; right:8px; top:8px; background:#f5f5f5; border:none; font-size:16px; width:28px; height:28px; border-radius:50%; cursor:pointer }
+.drawer-footer { padding:12px; border-top:1px solid #eee; display:flex; justify-content:space-between; align-items:center }
+.view-cart { display:inline-block; background:#e53935; color:#fff; padding:8px 12px; border-radius:6px; text-decoration:none }

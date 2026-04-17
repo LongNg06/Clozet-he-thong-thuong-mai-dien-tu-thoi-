@@ -1,0 +1,197 @@
+/* ========== CẢNH BÁO LỪA ĐẢO PAGE ========== */
+.luadao-page {
+  max-width: 1200px;
+  margin: 40px auto;
+  padding: 0 20px;
+  display: flex;
+  gap: 40px;
+}
+
+/* === MAIN CONTENT === */
+.luadao-main {
+  flex: 1;
+  min-width: 0;
+}
+
+.luadao-main h1 {
+  font-size: 22px;
+  font-weight: 800;
+  color: #111;
+  text-transform: uppercase;
+  margin: 0 0 24px 0;
+  line-height: 1.4;
+}
+
+.luadao-banner {
+  margin: 20px 0;
+  text-align: center;
+}
+
+.luadao-banner img {
+  max-width: 100%;
+  height: auto;
+  border-radius: 4px;
+}
+
+.luadao-intro {
+  font-size: 14px;
+  color: #333;
+  line-height: 1.8;
+  margin: 0 0 12px 0;
+  font-style: italic;
+}
+
+.luadao-section-title {
+  font-size: 16px;
+  font-weight: 800;
+  color: #111;
+  text-transform: uppercase;
+  margin: 30px 0 16px 0;
+}
+
+/* === STEPS === */
+.luadao-steps {
+  margin: 20px 0;
+}
+
+.step {
+  margin-bottom: 24px;
+  padding: 20px;
+  background: #fafafa;
+  border-left: 4px solid #e60000;
+  border-radius: 0 8px 8px 0;
+}
+
+.step h3 {
+  font-size: 15px;
+  font-weight: 700;
+  color: #e60000;
+  margin: 0 0 10px 0;
+}
+
+.step p {
+  font-size: 14px;
+  color: #333;
+  line-height: 1.7;
+  margin: 0 0 8px 0;
+}
+
+.step ul {
+  margin: 8px 0 0 0;
+  padding-left: 20px;
+}
+
+.step li {
+  font-size: 14px;
+  color: #333;
+  line-height: 1.7;
+  margin-bottom: 6px;
+}
+
+/* === WARNING BOX === */
+.luadao-warning-box {
+  margin: 30px 0;
+  padding: 24px;
+  background: #fff3f3;
+  border: 2px solid #e60000;
+  border-radius: 8px;
+}
+
+.luadao-warning-box h2 {
+  font-size: 18px;
+  font-weight: 800;
+  color: #e60000;
+  margin: 0 0 14px 0;
+}
+
+.luadao-warning-box ul {
+  margin: 0;
+  padding-left: 20px;
+}
+
+.luadao-warning-box li {
+  font-size: 14px;
+  color: #333;
+  line-height: 1.8;
+  margin-bottom: 8px;
+}
+
+.luadao-source {
+  font-size: 13px;
+  color: #999;
+  margin: 16px 0;
+}
+
+/* === TORANO NOTE === */
+.luadao-torano-note {
+  margin: 24px 0;
+  padding: 24px;
+  background: #f0f8ff;
+  border: 1px solid #b3d9ff;
+  border-radius: 8px;
+}
+
+.luadao-torano-note h3 {
+  font-size: 16px;
+  font-weight: 700;
+  color: #111;
+  margin: 0 0 12px 0;
+}
+
+.luadao-torano-note p {
+  font-size: 14px;
+  color: #333;
+  line-height: 1.7;
+  margin: 0 0 10px 0;
+}
+
+/* === SIDEBAR === */
+.luadao-sidebar {
+  width: 260px;
+  flex-shrink: 0;
+}
+
+.luadao-sidebar h3 {
+  font-size: 15px;
+  font-weight: 700;
+  color: #111;
+  padding-bottom: 12px;
+  border-bottom: 2px solid #eee;
+  margin: 0 0 0 0;
+  cursor: pointer;
+}
+
+.luadao-sidebar ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.luadao-sidebar li {
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.luadao-sidebar a {
+  display: block;
+  padding: 12px 0;
+  font-size: 14px;
+  color: #333;
+  text-decoration: none;
+  transition: color 0.2s;
+}
+
+.luadao-sidebar a:hover,
+.luadao-sidebar a.active {
+  color: #e60000;
+  font-weight: 600;
+}
+
+/* RESPONSIVE */
+@media (max-width: 768px) {
+  .luadao-page {
+    flex-direction: column;
+  }
+  .luadao-sidebar {
+    width: 100%;
+  }
+}
