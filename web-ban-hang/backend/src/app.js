@@ -20,7 +20,7 @@ require("dotenv").config();
 const express = require("express");
 const cors = require("cors");
 const nodemailer = require("nodemailer");
-
+const routes = require("./routes/index");
 const app = express(); // PHẢI nằm trước mọi app.use()
 
 app.use(cors());
@@ -30,8 +30,8 @@ app.use(express.json());
 app.use("/img", express.static("src/img"));
 app.use("/danhmuc_img", express.static("src/danhmuc_img"));
 app.use("/blog_img", express.static("src/blog_img"));
-
-const db = require("./routes/database");
+app.use("/api", routes);
+const db = require("./database");
 
 // ===== EMAIL TRANSPORTER =====
 const transporter = nodemailer.createTransport({

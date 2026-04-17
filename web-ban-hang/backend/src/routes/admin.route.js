@@ -1,6 +1,6 @@
 const express = require("express");
 const router = express.Router();
-const db = require("./database");
+const db = require("../database");
 // Sửa lại: dùng đúng bảng chi_tiet_donhang và các trường phù hợp
 router.get("/orders/:id/items", (req, res) => {
   const { id } = req.params;

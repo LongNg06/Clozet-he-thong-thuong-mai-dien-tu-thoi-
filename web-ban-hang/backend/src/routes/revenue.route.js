@@ -1,7 +1,7 @@
 // Add a new API endpoint to get revenue statistics for delivered orders (da_giao)
 const express = require("express");
 const router = express.Router();
-const db = require("./database");
+const db = require("../database");
 
 // ...existing code...
 

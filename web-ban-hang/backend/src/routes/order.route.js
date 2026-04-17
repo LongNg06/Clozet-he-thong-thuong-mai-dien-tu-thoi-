@@ -1,6 +1,6 @@
 const express = require("express");
 const router = express.Router();
-const db = require("./database");
+const db = require("../database");
 
 // Lấy danh sách đơn hàng theo id_KH và phương thức thanh toán
 // Lấy đơn hàng theo id_KH, id_diachi và các trường khác phải khác null

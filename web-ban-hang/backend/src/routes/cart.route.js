@@ -1,6 +1,6 @@
 const express = require("express");
 const router = express.Router();
-const db = require("./database");
+const db = require("../database");
 
 // ensure cart table exists with id_KH and variant columns
 const ensureTable = `

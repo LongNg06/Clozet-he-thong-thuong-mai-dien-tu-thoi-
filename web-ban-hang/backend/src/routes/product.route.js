@@ -1,6 +1,6 @@
 const express = require("express");
 const router = express.Router();
-const db = require("./database");
+const db = require("../database");
 
 // GET ALL PRODUCTS (no limit) — for "Sản phẩm mới" page
 router.get("/all", (req, res) => {
@@ -198,7 +198,7 @@ res.json(result)
 });
 
 
-// GET /api/products — trả về tất cả sản phẩm (chuẩn RESTful)
+// GET /api/products — chuẩn RESTful
 router.get("/", (req, res) => {
   const sql = `
     SELECT 
@@ -222,7 +222,7 @@ router.get("/", (req, res) => {
 
   db.query(sql, (err, result) => {
     if (err) {
-      console.error("SQL ERROR (all):", err);
+      console.error("SQL ERROR (products):", err);
       return res.status(500).json({ message: "Lỗi server" });
     }
     res.json(result);
