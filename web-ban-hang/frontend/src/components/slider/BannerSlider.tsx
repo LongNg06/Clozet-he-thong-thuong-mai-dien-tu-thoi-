@@ -3,10 +3,10 @@ import { useEffect, useState } from "react";
 import "./slider.css";
 
 const images = [
-  "src/components/img2/slide_2_img.jpg",
-  "src/components/img2/bannerswap1.jpg",
-  "src/components/img2/slide_3_img.jpg",
-  "src/components/img2/slide_4_img.jpg",
+  "/img2/slide_2_img.jpg",
+  "/img2/bannerswap1.jpg",
+  "/img2/slide_3_img.jpg",
+  "/img2/slide_4_img.jpg",
 ];
 
 const BannerSlider = () => {

@@ -6,7 +6,7 @@ const Footer = () => {
       {/* ================= TOP POLICY ================= */}
             <div className="footer-policy">
         <div className="policy-item">
-          <img src="/src/components/img2/shipping.png" alt="Miễn phí vận chuyển" />
+          <img src="/img2/shipping.png" alt="Miễn phí vận chuyển" />
           <div>
             <h4>Miễn phí vận chuyển</h4>
             <p>Áp dụng cho mọi đơn hàng từ 500k</p>
@@ -14,7 +14,7 @@ const Footer = () => {
         </div>
 
         <div className="policy-item">
-          <img src="/src/components/img2/stroge.png" alt="Đổi hàng dễ dàng" />
+          <img src="/img2/stroge.png" alt="Đổi hàng dễ dàng" />
           <div>
             <h4>Đổi hàng dễ dàng</h4>
             <p>7 ngày đổi hàng vì bất kì lý do gì</p>
@@ -22,7 +22,7 @@ const Footer = () => {
         </div>
 
         <div className="policy-item">
-          <img src="/src/components/img2/cskh.png" alt="Hỗ trợ nhanh chóng" />
+          <img src="/img2/cskh.png" alt="Hỗ trợ nhanh chóng" />
           <div>
             <h4>Hỗ trợ nhanh chóng</h4>
             <p>HOTLINE 24/7 : 0964942121</p>
@@ -30,7 +30,7 @@ const Footer = () => {
         </div>
 
         <div className="policy-item">
-          <img src="/src/components/img2/payment.png" alt="Thanh toán đa dạng" />
+          <img src="/img2/payment.png" alt="Thanh toán đa dạng" />
           <div>
             <h4>Thanh toán đa dạng</h4>
             <p>COD, Napas, Visa, Chuyển khoản</p>
