@@ -9,29 +9,30 @@ app.use(cors());
 app.use(express.json());
 
 
-// static images
+// static folder
 app.use("/img", express.static("src/img"));
 app.use("/danhmuc_img", express.static("src/danhmuc_img"));
 app.use("/blog_img", express.static("src/blog_img"));
 
 
-// import router tổng
-const routes = require("./routes");
+// IMPORT ROUTES TỔNG
+const routes = require("./routes/index");
 
-// dùng router
+
+// dùng routes
 app.use("/api", routes);
 
 
 // test server
 app.get("/", (req, res) => {
-    res.send("API running");
+    res.send("API running ok");
 });
 
 
 const PORT = process.env.PORT || 5000;
 
-app.listen(PORT, "0.0.0.0", () => {
-  console.log("Server running on port", PORT);
+app.listen(PORT, () => {
+    console.log("Server running port", PORT);
 });
 
 // ===== EMAIL =====
