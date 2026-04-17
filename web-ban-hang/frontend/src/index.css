@@ -92,7 +92,17 @@
 }
 .category-item {
   position: relative;
-   padding: 30px;
+  padding: 0;
+  overflow: hidden;
+  border-radius: 8px;
+  height: 400px;
+}
+
+.category-item img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
 }
 
 a {
@@ -123,7 +133,7 @@ button {
   font-size: 1em;
   font-weight: 500;
   font-family: inherit;
-  background-color: #1a1a1a;
+  background-color: #f3eeee;
   cursor: pointer;
   transition: border-color 0.25s;
    padding: 30px;

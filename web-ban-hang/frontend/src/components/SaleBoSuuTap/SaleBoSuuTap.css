@@ -23,7 +23,7 @@
 	display: block;
 }
 
-/* Reuse product-grid layout from home, but keep local override if needed */
+/* Product grid for sale section */
 .product-grid {
 	display: grid;
 	grid-template-columns: repeat(6, 1fr);

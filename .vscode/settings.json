@@ -1,0 +1,19 @@
+{
+    "sqltools.connections": [
+        {
+            "mysqlOptions": {
+                "authProtocol": "default",
+                "enableSsl": "Disabled"
+            },
+            "ssh": "Disabled",
+            "previewLimit": 50,
+            "server": "nozomi.proxy.rlwy.net",
+            "port": 56728,
+            "driver": "MySQL",
+            "name": "railway",
+            "database": "railway",
+            "username": "root",
+            "askForPassword": true
+        }
+    ]
+}

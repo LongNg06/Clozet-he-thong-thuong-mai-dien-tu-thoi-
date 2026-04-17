@@ -1,4 +1,6 @@
 import { useEffect, useState } from "react";
+const API_URL = import.meta.env.VITE_API_URL;
+import { useNavigate } from "react-router-dom";
 import { Swiper, SwiperSlide } from "swiper/react";
 import { Navigation } from "swiper/modules";
 
@@ -14,8 +16,10 @@ interface Category {
 function CategorySection() {
   const [categories, setCategories] = useState<Category[]>([]);
 
+  const navigate = useNavigate();
+
   useEffect(() => {
-    fetch("http://localhost:5000/categories")
+    fetch(`${API_URL}/categories`)
       .then((res) => res.json())
       .then((data: Category[]) => setCategories(data))
       .catch((err) => console.error(err));
@@ -51,12 +55,22 @@ function CategorySection() {
           <SwiperSlide key={cat.id_danhmuc}>
             <div className="category-item">
               <img
-                src={`http://localhost:5000/danhmuc_img/${cat.HinhAnh}`}
+                src={`${API_URL}/danhmuc_img/${cat.HinhAnh}`}
                 alt={cat.ten_danhmuc}
               />
               <div className="category-overlay">
                 <span>{cat.ten_danhmuc}</span>
-                <div className="arrow-btn">→</div>
+                <div
+                  className="arrow-btn"
+                  role="button"
+                  tabIndex={0}
+                  onClick={() => navigate(`/new-products?category=${cat.id_danhmuc}`)}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter" || e.key === " ") navigate(`/new-products?category=${cat.id_danhmuc}`);
+                  }}
+                >
+                  →
+                </div>
               </div>
             </div>
           </SwiperSlide>
