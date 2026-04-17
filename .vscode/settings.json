@@ -8,13 +8,12 @@
             "ssh": "Disabled",
             "previewLimit": 50,
             "server": "nozomi.proxy.rlwy.net",
-            "port": 34847,
+            "port": 56728,
             "driver": "MySQL",
             "name": "railway",
             "database": "railway",
             "username": "root",
-            "askForPassword": false
-            
+            "askForPassword": true
         }
     ]
 }
