@@ -1,3 +1,4 @@
+const API = import.meta.env.VITE_API_URL;
 import React, { useEffect, useState, useRef } from "react";
 import ProductCard from "../Product/ProductCart";
 import "./CategoryTabs.css";
@@ -32,12 +33,12 @@ export default function CategoryTabs({
   }, []);
 
   function fetchForCategory(id: number) {
-    fetch(`http://localhost:5000/products/category/${id}`)
+    fetch(`${API}/products/category/${id}`)
       .then((res) => res.json())
       .then((data) => {
         const mapped = (data || []).map((p: any) => ({
           ...p,
-          anh: typeof p.anh === "string" && /^(https?:)?\/\//.test(p.anh) ? p.anh : `http://localhost:5000${p.anh}`,
+          anh: typeof p.anh === "string" && /^(https?:)?\/\//.test(p.anh) ? p.anh : `${API}${p.anh}`,
         }));
         setProducts(mapped);
       })

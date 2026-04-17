@@ -1,4 +1,4 @@
-const API_URL = "http://localhost:5000/products";
+const API_URL = "https://clozet.up.railway.app/api/products";
 
 export const getProducts = async () => {
   const response = await fetch(API_URL);

@@ -1,3 +1,4 @@
+const API = import.meta.env.VITE_API_URL;
 import { useEffect, useState, useRef } from "react";
 import ProductCard from "../Product/ProductCart";
 import "./BoSuuTapMuaHe.css";
@@ -26,7 +27,7 @@ export default function BoSuuTapMuaHe({
     // fetch products for each category and merge
     Promise.all(
       categoryIds.map((id) =>
-        fetch(`http://localhost:5000/products/category/${id}`).then((r) => r.json()).catch(() => [])
+        fetch(`${API}/products/category/${id}`).then((r) => r.json()).catch(() => [])
       )
     )
       .then((arrays) => {
@@ -34,7 +35,7 @@ export default function BoSuuTapMuaHe({
         // map image urls to absolute
         const mapped = merged.map((p: any) => ({
           ...p,
-          anh: typeof p.anh === "string" && /^(https?:)?\/\//.test(p.anh) ? p.anh : `http://localhost:5000${p.anh}`,
+          anh: typeof p.anh === "string" && /^(https?:)?\/\//.test(p.anh) ? p.anh : `${API}${p.anh}`,
         }));
         // dedupe by id
         const unique = Array.from(new Map(mapped.map((m) => [m.id_sanpham, m])).values());
@@ -63,7 +64,7 @@ export default function BoSuuTapMuaHe({
   return (
     <section className="bs-section">
       <div className="sale-banner-section">
-        <img src={`http://localhost:5000${image}`} alt="Bộ sưu tập Mùa Hè" />
+        <img src={`${API}${image}`} alt="Bộ sưu tập Mùa Hè" />
       </div>
 
       <div className="product-grid-wrap">

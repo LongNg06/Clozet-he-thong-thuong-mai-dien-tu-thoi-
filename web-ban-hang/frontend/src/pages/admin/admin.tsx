@@ -2,7 +2,7 @@ import { useEffect, useState, useRef } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import "./style.css";
 
-const API = (import.meta.env && (import.meta.env.VITE_API_URL as string)) || "http://localhost:5000";
+const API = import.meta.env.VITE_API_URL;
 const formatVND = (n: number) => n.toLocaleString("vi-VN") + "đ";
 
 /* ====== TYPES ====== */

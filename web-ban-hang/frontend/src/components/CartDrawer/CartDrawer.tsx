@@ -37,11 +37,12 @@ export default function CartDrawer() {
   const [open, setOpen] = useState(false);
   const [items, setItems] = useState<CartItem[]>([]);
 
+  const API = import.meta.env.VITE_API_URL;
   function load() {
     const user = getUser();
     if (user && user.id) {
       // Logged in: fetch from backend DB
-      fetch(`http://localhost:5000/cart?id_KH=${user.id}`)
+      fetch(`${API}/cart?id_KH=${user.id}`)
         .then((r) => r.json())
         .then((d: CartItem[]) => setItems(d || []))
         .catch(() => setItems([]));
@@ -68,7 +69,7 @@ export default function CartDrawer() {
     if (newQty < 1) return;
     const user = getUser();
     if (user && user.id) {
-      fetch("http://localhost:5000/cart/update", {
+      fetch(`${API}/cart/update`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ id, id_KH: user.id, quantity: newQty }),
@@ -88,7 +89,7 @@ export default function CartDrawer() {
   function removeItem(id: number) {
     const user = getUser();
     if (user && user.id) {
-      fetch(`http://localhost:5000/cart/remove/${id}?id_KH=${user.id}`, { method: 'DELETE' })
+      fetch(`${API}/cart/remove/${id}?id_KH=${user.id}`, { method: 'DELETE' })
         .then(() => load())
         .catch(() => load());
     } else {
@@ -136,7 +137,7 @@ export default function CartDrawer() {
           items.map(it => {
             const itemKey = it.id || it.id_sanpham;
             const rawImg = it.variant_image || it.anh || '';
-            const imgSrc = rawImg.startsWith('http') ? rawImg : `http://localhost:5000${rawImg}`;
+            const imgSrc = rawImg.startsWith('http') ? rawImg : `${API}${rawImg}`;
             const variantInfo = [it.size_name, it.color_name].filter(Boolean).join(' / ');
             return (
             <div key={itemKey} className="drawer-item">
