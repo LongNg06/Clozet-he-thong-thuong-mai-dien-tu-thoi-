@@ -6,6 +6,12 @@ const nodemailer = require("nodemailer");
 
 const app = express();
 
+
+// ===== TEST ROUTE (MUST BE AT THE TOP) =====
+app.get("/", (req, res) => {
+  res.send("API RUNNING OK");
+});
+
 const db = require("./database"); // mysql connection
 
 // router tổng
@@ -38,9 +44,6 @@ app.use("/api", routes);
 
 
 // test server
-app.get("/", (req, res) => {
-    res.send("API running ok");
-});
 
 
 const PORT = process.env.PORT || 5000;
