@@ -1,39 +1,37 @@
-
-// const express = require("express");
-// const cors = require("cors");
-
-// const app = express();
-
-// require("./routes/database");
-// const vnpConfig = require("./routes/vnpay");
-
-// const routes = require("./routes/index");
-// const categoryRoutes = require("./routes/categoryroutes");
-// const productRoutes = require("./routes/product.route");
-
-// app.use(cors());
-// app.use(express.json());
-
-
-
 require("dotenv").config();
+
 const express = require("express");
 const cors = require("cors");
 const nodemailer = require("nodemailer");
-const routes = require("./routes/index");
-const app = express(); // PHẢI nằm trước mọi app.use()
+
+const app = express();
 
 app.use(cors());
 app.use(express.json());
 
-// Serve static image folders
+
+// ===== static images =====
 app.use("/img", express.static("src/img"));
 app.use("/danhmuc_img", express.static("src/danhmuc_img"));
 app.use("/blog_img", express.static("src/blog_img"));
-// app.use("/api", routes);
+
+
+// ===== DATABASE =====
 const db = require("./database");
 
-// ===== EMAIL TRANSPORTER =====
+
+// ===== ROUTES =====
+const routes = require("./routes");
+app.use("/api", routes);   // QUAN TRỌNG
+
+
+// ===== TEST ROOT =====
+app.get("/", (req,res)=>{
+  res.send("API RUNNING OK");
+});
+
+
+// ===== EMAIL =====
 const transporter = nodemailer.createTransport({
   service: "gmail",
   auth: {
@@ -42,37 +40,24 @@ const transporter = nodemailer.createTransport({
   },
 });
 
-// Store reset codes in memory: email -> { code, expires }
-const resetCodes = new Map();
 
-const categoryRoutes = require("./routes/categoryroutes");
-const productRoutes = require("./routes/product.route");
-const cartRoutes = require("./routes/cart.route");
-const orderRoutes = require("./routes/order.route");
-const revenueRoutes = require("./routes/revenue.route");
-const adminRoutes = require("./routes/admin.route");
-const vnpayRoutes = require("./routes/vnpay");
-const routes = require("./routes");
-app.use("/api", routes);
-// app.use("/api/categories", categoryRoutes);
-// app.use("/api/products", productRoutes);
-// app.use("/api/cart", cartRoutes);
-// app.use("/api/orders", orderRoutes);
-// app.use("/api/revenue", revenueRoutes);
-// app.use("/admin", adminRoutes);
-// app.use("/api", vnpayRoutes);
-
-
-// // static
-// ...existing static and other app.use if needed...
-
-// ==================== PUBLIC BLOG API ====================
+// ===== BLOG =====
 app.get("/blogs", (req, res) => {
-  const sql = `SELECT * FROM baiviet WHERE trang_thai = 1 ORDER BY ngay_tao DESC`;
-  db.query(sql, (err, rows) => {
-    if (err) return res.status(500).json({ message: "DB error" });
-    res.json(rows);
-  });
+  db.query(
+    "SELECT * FROM baiviet WHERE trang_thai = 1 ORDER BY ngay_tao DESC",
+    (err, rows) => {
+      if (err) return res.status(500).json({ message: "DB error" });
+      res.json(rows);
+    }
+  );
+});
+
+
+// ===== PORT =====
+const PORT = process.env.PORT || 5000;
+
+app.listen(PORT, "0.0.0.0", () => {
+  console.log("Server running on port", PORT);
 });
 
 app.get("/blogs/:id", (req, res) => {
@@ -701,11 +686,11 @@ app.get("/user/orders/:id/items", (req, res) => {
     });
   });
 });
-app.get("/", (req,res)=>{
-  res.send("API RUNNING OK");
-})
-const PORT = process.env.PORT || 5000;
+// app.get("/", (req,res)=>{
+//   res.send("API RUNNING OK");
+// })
+// const PORT = process.env.PORT || 5000;
 
-app.listen(PORT, "0.0.0.0", () => {
-  console.log("Server running on port", PORT);
-});
+// app.listen(PORT, "0.0.0.0", () => {
+//   console.log("Server running on port", PORT);
+// });
