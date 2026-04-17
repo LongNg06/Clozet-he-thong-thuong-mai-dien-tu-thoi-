@@ -30,7 +30,7 @@ app.use(express.json());
 app.use("/img", express.static("src/img"));
 app.use("/danhmuc_img", express.static("src/danhmuc_img"));
 app.use("/blog_img", express.static("src/blog_img"));
-app.use("/api", routes);
+// app.use("/api", routes);
 const db = require("./database");
 
 // ===== EMAIL TRANSPORTER =====
@@ -700,6 +700,9 @@ app.get("/user/orders/:id/items", (req, res) => {
     });
   });
 });
+// app.get("/", (req,res)=>{
+//   res.send("API RUNNING OK");
+// })
 const PORT = process.env.PORT || 5000;
 
 app.listen(PORT, "0.0.0.0", () => {
