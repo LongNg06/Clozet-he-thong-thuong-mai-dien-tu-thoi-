@@ -2,7 +2,6 @@ require("dotenv").config();
 
 const express = require("express");
 const cors = require("cors");
-const nodemailer = require("nodemailer");
 
 const app = express();
 
@@ -10,26 +9,30 @@ app.use(cors());
 app.use(express.json());
 
 
-// ===== static images =====
+// static images
 app.use("/img", express.static("src/img"));
 app.use("/danhmuc_img", express.static("src/danhmuc_img"));
 app.use("/blog_img", express.static("src/blog_img"));
 
 
-// ===== DATABASE =====
-const db = require("./database");
-
-
-// ===== ROUTES =====
+// import router tổng
 const routes = require("./routes");
-app.use("/api", routes);   // QUAN TRỌNG
+
+// dùng router
+app.use("/api", routes);
 
 
-// ===== TEST ROOT =====
-app.get("/", (req,res)=>{
-  res.send("API RUNNING OK");
+// test server
+app.get("/", (req, res) => {
+    res.send("API running");
 });
 
+
+const PORT = process.env.PORT || 5000;
+
+app.listen(PORT, "0.0.0.0", () => {
+  console.log("Server running on port", PORT);
+});
 
 // ===== EMAIL =====
 const transporter = nodemailer.createTransport({
@@ -54,11 +57,11 @@ app.get("/blogs", (req, res) => {
 
 
 // ===== PORT =====
-const PORT = process.env.PORT || 5000;
+// const PORT = process.env.PORT || 5000;
 
-app.listen(PORT, "0.0.0.0", () => {
-  console.log("Server running on port", PORT);
-});
+// app.listen(PORT, "0.0.0.0", () => {
+//   console.log("Server running on port", PORT);
+// });
 
 app.get("/blogs/:id", (req, res) => {
   const { id } = req.params;
