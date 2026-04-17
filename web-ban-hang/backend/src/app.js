@@ -15,22 +15,21 @@
 // app.use(express.json());
 
 
-// // static
-// app.use("/danhmuc_img", express.static(__dirname + "/danhmuc_img"));
-// app.use("/img", express.static(__dirname + "/img"));
 
-// // routes
-// app.use("/", routes);
-// app.use("/categories", categoryRoutes);
-// app.use("/products", productRoutes);
-
-// app.listen(5000);
 require("dotenv").config();
 const express = require("express");
 const cors = require("cors");
 const nodemailer = require("nodemailer");
 
-const app = express();
+const app = express(); // PHẢI nằm trước mọi app.use()
+
+app.use(cors());
+app.use(express.json());
+
+// Serve static image folders
+app.use("/img", express.static("src/img"));
+app.use("/danhmuc_img", express.static("src/danhmuc_img"));
+app.use("/blog_img", express.static("src/blog_img"));
 
 const db = require("./routes/database");
 
@@ -46,26 +45,25 @@ const transporter = nodemailer.createTransport({
 // Store reset codes in memory: email -> { code, expires }
 const resetCodes = new Map();
 
-const routes = require("./routes/index");
 const categoryRoutes = require("./routes/categoryroutes");
 const productRoutes = require("./routes/product.route");
+const cartRoutes = require("./routes/cart.route");
+const orderRoutes = require("./routes/order.route");
+const revenueRoutes = require("./routes/revenue.route");
 const adminRoutes = require("./routes/admin.route");
-const vnpayRoutes = require("./routes/vnpay"); // 👈 thêm dòng này
+const vnpayRoutes = require("./routes/vnpay");
 
-app.use(cors());
-app.use(express.json());
+app.use("/api/categories", categoryRoutes);
+app.use("/api/products", productRoutes);
+app.use("/api/cart", cartRoutes);
+app.use("/api/orders", orderRoutes);
+app.use("/api/revenue", revenueRoutes);
+app.use("/admin", adminRoutes);
+app.use("/api", vnpayRoutes);
+
 
 // static
-app.use("/danhmuc_img", express.static(__dirname + "/danhmuc_img"));
-app.use("/img", express.static(__dirname + "/img"));
-app.use("/static", express.static(__dirname));
-
-// routes
-app.use("/", routes);
-app.use("/categories", categoryRoutes);
-app.use("/products", productRoutes);
-app.use("/admin", adminRoutes);
-app.use("/api", vnpayRoutes); // 👈 thêm dòng này
+// ...existing static and other app.use if needed...
 
 // ==================== PUBLIC BLOG API ====================
 app.get("/blogs", (req, res) => {
@@ -429,8 +427,9 @@ app.put("/admin/notifications/read-all", (req, res) => {
   });
 });
 
-app.listen(5000, () => {
-    console.log("Server running port 5000");
+const PORT = process.env.PORT || 5000;
+app.listen(PORT, () => {
+  console.log("Server running on port", PORT);
 });
 
 // ==================== USER ACCOUNT APIs ====================

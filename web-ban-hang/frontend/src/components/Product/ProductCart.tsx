@@ -1,5 +1,6 @@
 import { useState, useMemo } from "react";
-import { useNavigate, Link } from "react-router-dom";
+const API_URL = import.meta.env.VITE_API_URL;
+import { Link } from "react-router-dom";
 import "./style.css";
 
 interface Product {
@@ -15,14 +16,14 @@ interface Product {
 }
 
 const ProductCard = ({ product }: { product: Product }) => {
-  const navigate = useNavigate();
+  // const navigate = useNavigate(); // Unused
 
   // ===== IMAGE URL =====
   const initialImg = useMemo(() => {
     if (!product.anh) return "";
     return product.anh.startsWith("http")
       ? product.anh
-      : `http://localhost:5000${product.anh}`;
+      : `${API_URL}${product.anh}`;
   }, [product.anh]);
 
   const hoverImgUrl = useMemo(() => {
@@ -30,7 +31,7 @@ const ProductCard = ({ product }: { product: Product }) => {
     if (!h) return undefined;
     return h.startsWith("http")
       ? h
-      : `http://localhost:5000${h}`;
+      : `${API_URL}${h}`;
   }, [product.hover_img]);
 
   const [currentImg, setCurrentImg] = useState<string>(initialImg);
@@ -55,65 +56,12 @@ const ProductCard = ({ product }: { product: Product }) => {
 
   const isOutOfStock = product.trang_thai === 0;
 
+
   // ===== VIEW PRODUCT =====
-  const handleView = () => {
-    navigate(`/product/${product.id_sanpham}`);
-  };
+  // (removed unused handleView)
 
   // ===== ADD TO CART =====
-  const handleAddToCart = async () => {
-    // Re-check stock before adding
-    try {
-      const sRes = await fetch(`http://localhost:5000/products/stock/${product.id_sanpham}`);
-      const sData = await sRes.json();
-      if (sData.so_luong_ton <= 0) { alert("Sản phẩm đã hết hàng!"); return; }
-    } catch { /* stock check failed, proceed */ }
-
-    const raw = localStorage.getItem('user');
-    const isLoggedIn = !!raw;
-    const user = raw ? JSON.parse(raw) : null;
-
-    if (isLoggedIn && user?.id) {
-      // Logged-in: save to backend DB (backend also checks stock)
-      try {
-        const r = await fetch("http://localhost:5000/cart/add", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ id_KH: user.id, id_sanpham: product.id_sanpham, quantity: 1 }),
-        });
-        if (!r.ok) {
-          const err = await r.json();
-          alert(err.message || "Lỗi thêm giỏ hàng");
-          return;
-        }
-        window.dispatchEvent(new Event("cart:open"));
-        window.dispatchEvent(new Event("cartUpdated"));
-      } catch {
-        window.dispatchEvent(new Event("cart:open"));
-      }
-    } else {
-      // Guest: save to localStorage
-      const cartRaw = localStorage.getItem('cartItems');
-      const cart = cartRaw ? JSON.parse(cartRaw) : [];
-      const existing = cart.find((it: { id_sanpham: number }) => it.id_sanpham === product.id_sanpham);
-      if (existing) {
-        existing.quantity += 1;
-      } else {
-        cart.push({
-          id: product.id_sanpham,
-          id_sanpham: product.id_sanpham,
-          quantity: 1,
-          ten_sanpham: product.ten_sanpham,
-          anh: product.anh,
-          gia_goc: product.gia_goc,
-          gia_khuyen_mai: product.gia_khuyen_mai,
-        });
-      }
-      localStorage.setItem('cartItems', JSON.stringify(cart));
-      window.dispatchEvent(new Event("cart:open"));
-      window.dispatchEvent(new Event("cartUpdated"));
-    }
-  };
+  // (removed unused handleAddToCart)
 
   // ===== BUY NOW (quick purchase) =====
   

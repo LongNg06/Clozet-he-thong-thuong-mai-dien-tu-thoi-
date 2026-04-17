@@ -11,12 +11,15 @@ export default function CheckoutPage() {
   const [city, setCity] = useState("");
   const [ward, setWard] = useState("");
   const [district, setDistrict] = useState("");
-  const [paymentMethod, setPaymentMethod] = useState("vnpay");
+  // const [paymentMethod, setPaymentMethod] = useState("vnpay"); // Unused
+    // const [selectedShipping, setSelectedShipping] = useState('standard');
+    // const [lockedShipping, setLockedShipping] = useState(false);
   const [showCodPopup, setShowCodPopup] = useState(false);
 
   const [errors, setErrors] = useState<Record<string, string>>({});
-  const [selectedShipping, setSelectedShipping] = useState('standard')
-  const [lockedShipping, setLockedShipping] = useState(false)
+  // Coupon logic
+  const [coupon, setCoupon] = useState("");
+  const [discount, setDiscount] = useState(0);
   const [savedAddresses, setSavedAddresses] = useState<any[]>([]);
   const [selectedAddrId, setSelectedAddrId] = useState<number | null>(null);
 
@@ -56,17 +59,6 @@ export default function CheckoutPage() {
     }
   }
 
-  // Apply checkout shipping preference from cart drawer (if any)
-  useEffect(() => {
-    try {
-      const pref = localStorage.getItem('checkoutShipping')
-      if (pref) {
-        setSelectedShipping(pref)
-        setLockedShipping(true)
-      }
-    } catch { }
-  }, [])
-
   // Helpers to support different cart item shapes from backend or localStorage
   const getItemName = (it: any) => it.name || it.ten_sanpham || it.title || ''
   const getItemQuantity = (it: any) => Number(it.quantity || it.so_luong || it.qty || 1)
@@ -78,26 +70,12 @@ export default function CheckoutPage() {
     if (typeof src === 'string' && src.startsWith('/')) return `http://localhost:5000${src}`
     return src
   }
+
+  // Tổng số lượng sản phẩm trong giỏ (phải đặt sau getItemQuantity)
+  const totalQuantity = cartItems.reduce((sum, it) => sum + getItemQuantity(it), 0);
   const getItemVariant = (it: any) => [it.size_name, it.color_name].filter(Boolean).join(' / ')
 
   const subtotal = cartItems.reduce((s, it) => s + getItemPrice(it) * getItemQuantity(it), 0);
-
-  // When subtotal changes, enforce free shipping if threshold reached
-  useEffect(() => {
-    if (subtotal >= 500000) {
-      setSelectedShipping('free')
-      setLockedShipping(true)
-      try { localStorage.setItem('checkoutShipping', 'free') } catch { }
-    } else {
-      try {
-        const pref = localStorage.getItem('checkoutShipping')
-        if (pref === 'free' && subtotal < 500000) {
-          setLockedShipping(false)
-          localStorage.removeItem('checkoutShipping')
-        }
-      } catch { }
-    }
-  }, [subtotal])
 
   // prefill contact fields from logged user if present
   useEffect(() => {
@@ -114,16 +92,27 @@ export default function CheckoutPage() {
   }, [])
 
 
-  const shippingOptions = [
-    { id: 'standard', name: 'Giao hàng tiêu chuẩn', description: '3-5 ngày làm việc', price: 15000 },
-    { id: 'express', name: 'Giao hàng nhanh', description: '1-2 ngày làm việc', price: 35000 },
-    { id: 'same-day', name: 'Giao hàng trong ngày', description: 'Trong vòng 24h (chỉ HCM, HN)', price: 50000 },
-    { id: 'free', name: 'Miễn phí vận chuyển', description: 'Đơn hàng trên 500.000₫', price: 0, condition: subtotal >= 500000 }
-  ]
+  // Coupon logic
+  const handleCouponChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const value = event.target.value;
+    // Nếu chọn SALE20 mà số lượng < 3 thì không cho chọn
+    if (value === "SALE20" && totalQuantity < 3) {
+      alert("Mã SALE20 chỉ áp dụng khi mua từ 3 sản phẩm trở lên.");
+      return;
+    }
+    setCoupon(value);
+    if (value === "SALE10") setDiscount(0.1);
+    else if (value === "SALE20") setDiscount(0.2);
+    else if (value === "FREESHIP") setDiscount(30000); // 30k freeship
+    else setDiscount(0);
+  };
 
-  const selectedShippingOption = shippingOptions.find(o => o.id === selectedShipping)
-  const shippingFee = selectedShippingOption?.price || 0
-  const total = subtotal + shippingFee
+  let finalTotal = subtotal;
+  if (coupon === "SALE10" || coupon === "SALE20") {
+    finalTotal = subtotal - subtotal * discount;
+  } else if (coupon === "FREESHIP") {
+    finalTotal = subtotal - discount;
+  }
 
   const validateForm = () => {
     const e: Record<string, string> = {}
@@ -151,19 +140,49 @@ export default function CheckoutPage() {
         if (sRes.ok) {
           const sData = await sRes.json();
           const qty = getItemQuantity(item);
-          if (sData.so_luong_ton <= 0) { alert(`Sản phẩm "${getItemName(item)}" đã hết hàng!`); return; }
-          if (qty > sData.so_luong_ton) { alert(`Sản phẩm "${getItemName(item)}" chỉ còn ${sData.so_luong_ton} trong kho!`); return; }
+          if (sData.so_luong_ton <= 0) { alert(`Sản phẩm \"${getItemName(item)}\" đã hết hàng!`); return; }
+          if (qty > sData.so_luong_ton) { alert(`Sản phẩm \"${getItemName(item)}\" chỉ còn ${sData.so_luong_ton} trong kho!`); return; }
         }
       } catch {}
     }
 
     try {
+      const orderPayload = {
+        id_KH: user?.id || null,
+        id_diachi: selectedAddrId,
+        ten_nguoinhan: name,
+        so_dien_thoai: phone,
+        dia_chi_cu_the: address,
+        phuong_xa: ward,
+        quan_huyen: district,
+        tinh_thanh: city,
+        items: cartItems,
+        tong_tien_hang: subtotal,
+        phi_van_chuyen: 0,
+        tong_thanh_toan: finalTotal,
+        payment_method: "vnpay"
+      };
+
       const res = await fetch("http://localhost:5000/api/create-payment", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ amount: total })
+        body: JSON.stringify(orderPayload)
       });
       const data = await res.json();
+      // Xóa giỏ hàng local và backend (nếu đăng nhập) trước khi chuyển hướng sang VNPAY
+      localStorage.removeItem("cartItems");
+      localStorage.removeItem("checkoutItems");
+      localStorage.removeItem("checkoutShipping");
+      window.dispatchEvent(new CustomEvent("cartUpdated"));
+      if (user?.id) {
+        try {
+          await fetch(`http://localhost:5000/cart/checkout`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ id_KH: user.id })
+          });
+        } catch {}
+      }
       window.location.href = data.url;
     } catch (err) {
       console.error("VNPay error:", err);
@@ -211,8 +230,8 @@ export default function CheckoutPage() {
         tinh_thanh: city,
         items: cartItems,
         tong_tien_hang: subtotal,
-        phi_van_chuyen: shippingFee,
-        tong_thanh_toan: total,
+        phi_van_chuyen: 0,
+        tong_thanh_toan: finalTotal,
         payment_method: "cod"
       };
 
@@ -227,12 +246,20 @@ export default function CheckoutPage() {
         throw new Error(data.message || "Lỗi tạo đơn");
       }
 
-      // Clear cart
+      // Clear cart local và backend (nếu đăng nhập)
       localStorage.removeItem("cartItems");
       localStorage.removeItem("checkoutItems");
       localStorage.removeItem("checkoutShipping");
       window.dispatchEvent(new CustomEvent("cartUpdated"));
-
+      if (user?.id) {
+        try {
+          await fetch(`http://localhost:5000/cart/checkout`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ id_KH: user.id })
+          });
+        } catch {}
+      }
       // Show COD success popup
       setShowCodPopup(true);
     } catch (e: any) {
@@ -351,26 +378,37 @@ export default function CheckoutPage() {
               <span>Tạm tính</span>
               <span>{subtotal.toLocaleString('vi-VN')}₫</span>
             </div>
-            {/* Shipping options */}
+            {/* Coupon options */}
             <div className="shipping-options mt-3">
-              {shippingOptions.map(option => (
-                <label
-                  key={option.id}
-                  className={`shipping-option ${selectedShipping === option.id ? 'selected' : ''} ${lockedShipping && option.id !== selectedShipping ? 'disabled' : ''}`}
-                  onClick={() => { if (!lockedShipping) setSelectedShipping(option.id) }}
-                  aria-disabled={lockedShipping && option.id !== selectedShipping}
-                >
-                  <div className="ship-row">
-                    <div className="ship-name">{option.name}</div>
-                    <div className="ship-price">{option.price === 0 ? 'Miễn phí' : `${option.price.toLocaleString('vi-VN')}₫`}</div>
-                  </div>
-                  <div className="ship-desc">{option.description}</div>
-                </label>
-              ))}
+              <label className={`shipping-option ${coupon === "" ? 'selected' : ''}`}>
+                <input type="radio" name="coupon" value="" checked={coupon === ""} onChange={handleCouponChange} />
+                Không áp dụng mã giảm giá
+              </label>
+              <label className={`shipping-option ${coupon === "SALE10" ? 'selected' : ''}`}>
+                <input type="radio" name="coupon" value="SALE10" checked={coupon === "SALE10"} onChange={handleCouponChange} />
+                SALE10 - Giảm 10%
+              </label>
+              <label className={`shipping-option ${coupon === "SALE20" ? 'selected' : ''} ${totalQuantity < 3 ? 'disabled' : ''}`}>
+                <input type="radio" name="coupon" value="SALE20" checked={coupon === "SALE20"} onChange={handleCouponChange} disabled={totalQuantity < 3} />
+                SALE20 - Giảm 20% {totalQuantity < 3 && <span style={{color: 'red', fontSize: '0.9em'}}>(Chỉ áp dụng khi mua ≥ 3 sản phẩm)</span>}
+              </label>
+              <label className={`shipping-option ${coupon === "FREESHIP" ? 'selected' : ''}`}>
+                <input type="radio" name="coupon" value="FREESHIP" checked={coupon === "FREESHIP"} onChange={handleCouponChange} />
+                FREESHIP - Giảm 30.000₫
+              </label>
             </div>
-            <div className="flex justify-between text-lg font-bold pt-2 border-t border-gray-200">
-              <span>Tổng cộng</span>
-              <span className="text-blue-600">{total.toLocaleString('vi-VN')}₫</span>
+            <div className="flex flex-col gap-1 pt-2 border-t border-gray-200">
+              <div className="flex justify-between text-sm">
+                <span>Tạm tính</span>
+                <span>{subtotal.toLocaleString('vi-VN')}₫</span>
+              </div>
+              {coupon === "SALE10" && <div className="flex justify-between text-sm"><span>Mã giảm giá SALE10</span><span>-{(subtotal * 0.1).toLocaleString('vi-VN')}₫</span></div>}
+              {coupon === "SALE20" && <div className="flex justify-between text-sm"><span>Mã giảm giá SALE20</span><span>-{(subtotal * 0.2).toLocaleString('vi-VN')}₫</span></div>}
+              {coupon === "FREESHIP" && <div className="flex justify-between text-sm"><span>Mã giảm giá FREESHIP</span><span>-30.000₫</span></div>}
+              <div className="flex justify-between text-lg font-bold">
+                <span>Tổng cộng</span>
+                <span className="text-blue-600">{finalTotal.toLocaleString('vi-VN')}₫</span>
+              </div>
             </div>
 
             {/* Payment buttons */}

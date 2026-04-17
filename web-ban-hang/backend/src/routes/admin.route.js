@@ -1,7 +1,21 @@
 const express = require("express");
 const router = express.Router();
 const db = require("./database");
-
+// Sửa lại: dùng đúng bảng chi_tiet_donhang và các trường phù hợp
+router.get("/orders/:id/items", (req, res) => {
+  const { id } = req.params;
+  const sql = `
+    SELECT ct.id_sanpham, ct.ten_sanpham, ct.so_luong, ct.gia, ct.size_name, ct.color_name,
+           sp.anh
+    FROM chi_tiet_donhang ct
+    LEFT JOIN sanpham sp ON ct.id_sanpham = sp.id_sanpham
+    WHERE ct.id_donhang = ?
+  `;
+  db.query(sql, [id], (err, items) => {
+    if (err) return res.status(500).json({ message: "DB error" });
+    res.json(items || []);
+  });
+});
 // ==================== DASHBOARD STATS ====================
 router.get("/stats", (req, res) => {
   const queries = {

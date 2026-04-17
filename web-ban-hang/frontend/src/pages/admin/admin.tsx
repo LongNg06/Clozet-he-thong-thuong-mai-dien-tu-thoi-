@@ -1,25 +1,49 @@
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import "./style.css";
 
 const API = (import.meta.env && (import.meta.env.VITE_API_URL as string)) || "http://localhost:5000";
-const formatVND = (n: number) => n.toLocaleString("vi-VN") + "đ";
+const formatVND = (n: number) => {
+  // Làm tròn xuống đến hàng nghìn, bỏ phần thập phân
+  const rounded = Math.round(Number(n) / 1000) * 1000;
+  return rounded.toLocaleString("vi-VN") + "đ";
+};
 
 /* ====== TYPES ====== */
 type Product = {
-  id_sanpham: number; ten_sanpham: string; gia_goc: number; gia_khuyen_mai?: number;
-  anh: string; mo_ta?: string; trang_thai: number; id_danhmuc?: number;
-  ten_danhmuc?: string; tong_ton_kho?: number;
+  id_sanpham: number,
+  ten_sanpham: string,
+  gia_goc: number,
+  gia_khuyen_mai?: number,
+  anh: string,
+  mo_ta?: string,
+  trang_thai: number,
+  id_danhmuc?: number,
+  ten_danhmuc?: string,
+  tong_ton_kho?: number,
 };
 type Category = {
-  id_danhmuc: number; ten_danhmuc: string; mo_ta?: string; HinhAnh: string;
-  trang_thai?: number; so_san_pham?: number;
+  id_danhmuc: number,
+  ten_danhmuc: string,
+  mo_ta?: string,
+  HinhAnh: string,
+  trang_thai?: number,
+  so_san_pham?: number,
 };
 type Order = {
-  id_donhang: number; ho_ten?: string; email?: string; tong_thanh_toan: number;
-  trang_thai_donhang: string; ngay_dat: string;
-  ten_nguoinhan?: string; so_dien_thoai?: string; dia_chi_cu_the?: string;
-  phuong_xa?: string; quan_huyen?: string; tinh_thanh?: string;
+  id_donhang: number,
+  ho_ten?: string,
+  email?: string,
+  tong_thanh_toan: number,
+  trang_thai_donhang: string,
+  ngay_dat: string,
+  ten_nguoinhan?: string,
+  so_dien_thoai?: string,
+  dia_chi_cu_the?: string,
+  phuong_xa?: string,
+  quan_huyen?: string,
+  tinh_thanh?: string,
+  payment_method?: string, // Add this property for payment method
 };
 type Stats = { totalProducts: number; ordersToday: number; totalMembers: number };
 type RecentOrder = { id_donhang: number; ho_ten: string; tong_thanh_toan: number; trang_thai_donhang: string; ngay_dat: string };
@@ -435,6 +459,9 @@ function OrdersPage() {
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState("all");
+  const [detailOrder, setDetailOrder] = useState<Order | null>(null);
+  const [orderItems, setOrderItems] = useState<any[]>([]);
+  const [loadingDetail, setLoadingDetail] = useState(false);
 
   const load = () => {
     setLoading(true);
@@ -468,6 +495,37 @@ function OrdersPage() {
 
   const filtered = filter === "all" ? orders : orders.filter(o => o.trang_thai_donhang === filter);
 
+  // Lấy chi tiết đơn hàng
+const showDetail = async (order: Order) => {
+  setDetailOrder(order);
+  setLoadingDetail(true);
+  setOrderItems([]);
+
+  try {
+    const res = await fetch(`${API}/admin/orders/${order.id_donhang}/items`);
+    const data = await res.json();
+
+    console.log("ORDER ITEMS API:", data);
+
+    // FIX CHÍNH Ở ĐÂY
+    let items: any[] = [];
+
+    if (Array.isArray(data)) {
+      items = data;
+    } else if (Array.isArray(data.data)) {
+      items = data.data;
+    } else if (Array.isArray(data.orderItems)) {
+      items = data.orderItems;
+    }
+
+    setOrderItems(items);
+  } catch (err) {
+    console.error("Lỗi load chi tiết đơn:", err);
+    setOrderItems([]);
+  }
+
+  setLoadingDetail(false);
+};
   return (
     <>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
@@ -492,13 +550,18 @@ function OrdersPage() {
           <table className="admin-table">
             <thead>
               <tr>
-                <th>Mã ĐH</th><th>Khách hàng</th><th>Địa chỉ</th><th>Tổng tiền</th><th>Ngày đặt</th><th>Trạng thái</th><th>Hành động</th>
+                <th>Mã ĐH</th><th>Khách hàng</th><th>Địa chỉ</th><th>Tổng tiền</th><th>Ngày đặt</th><th>Phương thức</th><th>Trạng thái</th><th>Hành động</th><th></th>
               </tr>
             </thead>
             <tbody>
               {filtered.map(o => {
                 const st = statusLabel(o.trang_thai_donhang);
                 const addr = [o.dia_chi_cu_the, o.phuong_xa, o.quan_huyen, o.tinh_thanh].filter(Boolean).join(", ");
+                // Hiển thị phương thức thanh toán
+                let paymentLabel = "";
+                if (o.payment_method === "vnpay") paymentLabel = "Online";
+                else if (o.payment_method === "cod") paymentLabel = "COD";
+                else paymentLabel = o.payment_method || "Khác";
                 return (
                   <tr key={o.id_donhang}>
                     <td style={{ fontWeight: 700, color: "#fff" }}>#{o.id_donhang}</td>
@@ -509,6 +572,7 @@ function OrdersPage() {
                     <td style={{ fontSize: "0.85rem", color: "var(--muted)", maxWidth: 200 }}>{addr || "—"}</td>
                     <td style={{ fontWeight: 700, color: "#4ade80" }}>{formatVND(o.tong_thanh_toan || 0)}</td>
                     <td style={{ fontSize: "0.85rem" }}>{o.ngay_dat ? new Date(o.ngay_dat).toLocaleDateString("vi-VN") : "—"}</td>
+                    <td><span className="status-badge" style={{background:o.payment_method==="vnpay"?"#2563eb":"#f59e0b",color:"#fff"}}>{paymentLabel}</span></td>
                     <td><span className={`status-badge ${st.cls}`}>{st.text}</span></td>
                     <td>
                       <select
@@ -523,16 +587,63 @@ function OrdersPage() {
                         <option value="da_huy">Đã hủy</option>
                       </select>
                     </td>
+                    <td>
+                      <button className="btn btn-outline btn-sm" onClick={() => showDetail(o)}>Xem chi tiết</button>
+                    </td>
                   </tr>
                 );
               })}
               {filtered.length === 0 && (
-                <tr><td colSpan={7} style={{ textAlign: "center", color: "var(--muted)" }}>Không có đơn hàng</td></tr>
+                <tr><td colSpan={9} style={{ textAlign: "center", color: "var(--muted)" }}>Không có đơn hàng</td></tr>
               )}
             </tbody>
           </table>
         )}
       </div>
+
+      {/* Modal chi tiết đơn hàng */}
+      {detailOrder && (
+        <div className="modal-overlay" onClick={() => setDetailOrder(null)}>
+          <div className="modal-content" onClick={e => e.stopPropagation()} style={{ maxWidth: 600 }}>
+            <h2>Chi tiết đơn hàng #{detailOrder.id_donhang}</h2>
+            <div style={{ marginBottom: 8 }}>
+              <strong>Khách:</strong> {detailOrder.ho_ten || detailOrder.ten_nguoinhan || "Khách"} <br />
+              <strong>Địa chỉ:</strong> {[detailOrder.dia_chi_cu_the, detailOrder.phuong_xa, detailOrder.quan_huyen, detailOrder.tinh_thanh].filter(Boolean).join(", ")}<br />
+              <strong>Ngày đặt:</strong> {detailOrder.ngay_dat ? new Date(detailOrder.ngay_dat).toLocaleString("vi-VN") : "—"}<br />
+              <strong>Trạng thái:</strong> {statusLabel(detailOrder.trang_thai_donhang).text}
+            </div>
+            <div style={{ marginBottom: 8 }}>
+              <strong>Tổng tiền:</strong> {formatVND(detailOrder.tong_thanh_toan || 0)}
+            </div>
+            <h3>Sản phẩm</h3>
+            {loadingDetail ? <div>Đang tải chi tiết...</div> : (
+              orderItems.length === 0 ? <div>Không có sản phẩm</div> : (
+                <table className="admin-table">
+                  <thead>
+                    <tr>
+                      <th>Ảnh</th><th>Tên SP</th><th>Phân loại</th><th>SL</th><th>Giá</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {orderItems.map((item, idx) => (
+                      <tr key={idx}>
+                        <td><img src={item.anh || "/img/placeholder.png"} alt="" style={{ width: 48, height: 48, borderRadius: 6 }} /></td>
+                        <td>{item.ten_sanpham}</td>
+                        <td>{[item.size_name, item.color_name].filter(Boolean).join(" / ")}</td>
+                        <td>{item.so_luong}</td>
+                        <td>{formatVND(item.gia)}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              )
+            )}
+            <div style={{ textAlign: "right", marginTop: 16 }}>
+              <button className="btn btn-outline" onClick={() => setDetailOrder(null)}>Đóng</button>
+            </div>
+          </div>
+        </div>
+      )}
     </>
   );
 }

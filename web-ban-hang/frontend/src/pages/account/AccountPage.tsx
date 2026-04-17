@@ -407,7 +407,7 @@ export default function AccountPage() {
               {(() => {
                 const filtered = orderTab === "cod"
                   ? orders.filter(o => !o.phuong_thuc_thanh_toan || o.phuong_thuc_thanh_toan === "cod")
-                  : orders.filter(o => o.phuong_thuc_thanh_toan && o.phuong_thuc_thanh_toan !== "cod");
+                  : orders.filter(o => o.phuong_thuc_thanh_toan === "vnpay");
 
                 if (filtered.length === 0)
                   return <p className="empty-msg">Không có đơn hàng {orderTab === "cod" ? "COD" : "online"} nào.</p>;
