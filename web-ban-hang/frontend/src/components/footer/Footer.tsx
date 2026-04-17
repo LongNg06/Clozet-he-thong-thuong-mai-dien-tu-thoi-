@@ -66,11 +66,11 @@ const Footer = () => {
 
             <h4>Phương thức thanh toán</h4>
             <div className="payment">
-              <img src="src/components/img2/vnpay.png" alt="VNPay" />
-              <img src="src/components/img2/zalo.png" alt="ZaloPay" />
-              <img src="src/components/img2/moca.png" alt="Moca" />
-              <img src="src/components/img2/napas.png" alt="Napas" />
-              <img src="src/components/img2/visa.png" alt="Visa" />
+              <img src="/img2/vnpay.png" alt="VNPay" />
+              <img src="/img2/zalo.png" alt="ZaloPay" />
+              <img src="/img2/moca.png" alt="Moca" />
+              <img src="/img2/napas.png" alt="Napas" />
+              <img src="/img2/visa.png" alt="Visa" />
             </div>
           </div>
 
@@ -111,7 +111,7 @@ const Footer = () => {
 
             <img
               className="bo-cong-thuong"
-              src="src/components/img2/dathongbao.png"
+              src="/img2/dathongbao.png"
               alt="Đã thông báo Bộ Công Thương"
             />
           </div>
