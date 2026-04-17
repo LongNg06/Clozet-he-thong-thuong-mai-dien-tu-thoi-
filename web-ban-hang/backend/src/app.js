@@ -1,10 +1,22 @@
 require("dotenv").config();
-const nodemailer = require("nodemailer");
+
 const express = require("express");
 const cors = require("cors");
+const nodemailer = require("nodemailer");
 
-const app = express();
+const db = require("./database"); // mysql connection
 
+// router tổng
+const routes = require("./routes");
+
+// nếu bạn dùng từng route riêng
+const categoryRoutes = require("./routes/categoryroutes");
+const productRoutes = require("./routes/product.route");
+const cartRoutes = require("./routes/cart.route");
+const orderRoutes = require("./routes/order.route");
+const revenueRoutes = require("./routes/revenue.route");
+const adminRoutes = require("./routes/admin.route");
+const vnpayRoutes = require("./routes/vnpay");
 app.use(cors());
 app.use(express.json());
 
