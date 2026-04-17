@@ -2,8 +2,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { useState, useEffect, useRef } from "react";
 import "./header.css";
 
-import logo from "../img2/logo.png";
-import banner from "../img2/topbar_img.jpg";
+
 
 interface SearchResult {
   id_sanpham: number;
@@ -213,8 +212,7 @@ const Header = () => {
       {/* TOP BANNER */}
       {showBanner && (
         <div className="top-banner">
-          <img src={banner} alt="Banner Sale" />
-
+          <img src="/img2/topbar_img.jpg" alt="Banner Sale" />
           <button
             className="close-banner"
             onClick={() => setShowBanner(false)}
@@ -313,8 +311,7 @@ const Header = () => {
           {/* LOGO */}
           <div className="logo">
             <Link to="/">
-              {/* <img src={logo} alt="Torano" /> */}
-                    <h1>Clozet</h1>
+              <img src="/img2/logo.png" alt="Clozet" style={{height:40}} />
             </Link>
           </div>
 
@@ -397,7 +394,7 @@ const Header = () => {
           <div className="search-overlay-content" onClick={(e) => e.stopPropagation()}>
             <div className="search-overlay-header">
               <Link to="/" onClick={closeSearch}>
-                <img src={logo} alt="Torano" className="search-logo" />
+                <img src="/img2/logo.png" alt="Clozet" className="search-logo" />
               </Link>
               <div className="search-input-wrap">
                 <input
