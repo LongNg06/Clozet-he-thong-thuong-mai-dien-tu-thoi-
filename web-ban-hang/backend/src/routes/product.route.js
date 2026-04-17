@@ -198,7 +198,7 @@ res.json(result)
 });
 
 
-// GET /api/products — chuẩn RESTful
+// GET /api/products — trả về tất cả sản phẩm (chuẩn RESTful)
 router.get("/", (req, res) => {
   const sql = `
     SELECT 
@@ -222,7 +222,7 @@ router.get("/", (req, res) => {
 
   db.query(sql, (err, result) => {
     if (err) {
-      console.error("SQL ERROR (products):", err);
+      console.error("SQL ERROR (all):", err);
       return res.status(500).json({ message: "Lỗi server" });
     }
     res.json(result);
