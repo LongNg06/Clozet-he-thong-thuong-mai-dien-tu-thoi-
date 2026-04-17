@@ -1,3 +1,4 @@
+import logo from "../../assets/img2/logo.png";
 import { Link, useNavigate } from "react-router-dom";
 import { useState, useEffect, useRef } from "react";
 import "./header.css";
@@ -311,7 +312,7 @@ const Header = () => {
           {/* LOGO */}
           <div className="logo">
             <Link to="/">
-              <img src="https://clozet.io.vn/img2/logo.png" alt="Clozet" style={{height:40}} />
+              <img src={logo} alt="Clozet" style={{height:40}} />
             </Link>
           </div>
 
@@ -394,7 +395,7 @@ const Header = () => {
           <div className="search-overlay-content" onClick={(e) => e.stopPropagation()}>
             <div className="search-overlay-header">
               <Link to="/" onClick={closeSearch}>
-                <img src="https://clozet.io.vn/img2/logo.png" alt="Clozet" className="search-logo" />
+                <img src={logo} alt="Clozet" className="search-logo" />
               </Link>
               <div className="search-input-wrap">
                 <input
