@@ -1,3 +1,4 @@
+const API = import.meta.env.vite_api_url;
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import "./cart.css";
@@ -16,7 +17,7 @@ export default function CartPage() {
   function load() {
     const user = getUser();
     if (user && user.id) {
-      fetch(`http://localhost:5000/cart?id_KH=${user.id}`)
+      fetch(`${API}/cart?id_KH=${user.id}`)
         .then((r) => r.json())
         .then((data) => setItems(data || []))
         .catch(() => setItems([]));

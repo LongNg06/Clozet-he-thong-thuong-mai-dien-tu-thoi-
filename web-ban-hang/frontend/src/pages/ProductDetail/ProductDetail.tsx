@@ -1,3 +1,4 @@
+const API = import.meta.env.vite_api_url;
 import { useEffect, useState, useMemo } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import "./ProductDetail.css";
@@ -67,12 +68,12 @@ export default function ProductDetail() {
 
   useEffect(() => {
     // Fetch fresh stock data
-    fetch(`http://localhost:5000/products/stock/${id}`)
+    fetch(`${API}/products/stock/${id}`)
       .then(r => r.json())
       .then(data => { if (data.so_luong_ton !== undefined) setStock(data.so_luong_ton); })
       .catch(() => {});
 
-    fetch(`http://localhost:5000/products/${id}`)
+    fetch(`${API}/products/${id}`)
       .then(res => res.json())
       .then((data: Product[] | Product) => {
         if (Array.isArray(data) && data.length > 0) {
@@ -84,14 +85,14 @@ export default function ProductDetail() {
           if (base.anh) {
             const url = base.anh.startsWith("http")
               ? base.anh
-              : `http://localhost:5000${base.anh}`;
+              : `${API}${base.anh}`;
             imgs.push(url);
           }
           data.forEach((r: Product) => {
             if (r.anh_bienthe) {
               const url = r.anh_bienthe.startsWith("http")
                 ? r.anh_bienthe
-                : `http://localhost:5000${r.anh_bienthe}`;
+                : `${API}${r.anh_bienthe}`;
               if (!imgs.includes(url)) imgs.push(url);
             }
           });
@@ -116,7 +117,7 @@ export default function ProductDetail() {
             if (r.id_mau && r.ten_mau) {
               if (!colorMap.has(r.id_mau)) {
                 const img = r.anh_bienthe
-                  ? (r.anh_bienthe.startsWith("http") ? r.anh_bienthe : `http://localhost:5000${r.anh_bienthe}`)
+                  ? (r.anh_bienthe.startsWith("http") ? r.anh_bienthe : `${API}${r.anh_bienthe}`)
                   : undefined;
                 colorMap.set(r.id_mau, { name: r.ten_mau, image: img });
               }
@@ -133,7 +134,7 @@ export default function ProductDetail() {
           const p = data as Product;
           setProduct(p);
           const img = p?.anh
-            ? (p.anh.startsWith("http") ? p.anh : `http://localhost:5000${p.anh}`)
+            ? (p.anh.startsWith("http") ? p.anh : `${API}${p.anh}`)
             : "";
           setGallery(img ? [img] : []);
           setMainImg(img);
@@ -144,7 +145,7 @@ export default function ProductDetail() {
   // Fetch reviews + check review eligibility
   useEffect(() => {
     if (!id) return;
-    fetch(`http://localhost:5000/reviews/${id}`)
+    fetch(`${API}/reviews/${id}`)
       .then(r => r.json())
       .then(data => setReviews(data || []))
       .catch(() => {});
@@ -152,7 +153,7 @@ export default function ProductDetail() {
     const raw = localStorage.getItem("user");
     const user = raw ? JSON.parse(raw) : null;
     if (user?.id) {
-      fetch(`http://localhost:5000/reviews/can-review/${id}?id_KH=${user.id}`)
+      fetch(`${API}/reviews/can-review/${id}?id_KH=${user.id}`)
         .then(r => r.json())
         .then(data => {
           setCanReview(data.canReview);
@@ -162,7 +163,7 @@ export default function ProductDetail() {
         .catch(() => {});
 
       // Check wishlist
-      fetch(`http://localhost:5000/wishlist/check/${id}?id_KH=${user.id}`)
+      fetch(`${API}/wishlist/check/${id}?id_KH=${user.id}`)
         .then(r => r.json())
         .then(data => setInWishlist(data.inWishlist))
         .catch(() => {});
@@ -176,7 +177,7 @@ export default function ProductDetail() {
 
     setSubmittingReview(true);
     try {
-      const res = await fetch("http://localhost:5000/reviews", {
+      const res = await fetch(`${API}/reviews`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({

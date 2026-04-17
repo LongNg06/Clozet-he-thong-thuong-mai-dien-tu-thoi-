@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import "./account.css";
 
-const API = "http://localhost:5000";
+const API = import.meta.env.vite_api_url;
 
 interface Order {
   id_donhang: number;
