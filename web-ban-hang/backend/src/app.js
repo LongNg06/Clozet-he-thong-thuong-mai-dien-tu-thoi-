@@ -700,9 +700,9 @@ app.get("/user/orders/:id/items", (req, res) => {
     });
   });
 });
-// app.get("/", (req,res)=>{
-//   res.send("API RUNNING OK");
-// })
+app.get("/", (req,res)=>{
+  res.send("API RUNNING OK");
+})
 const PORT = process.env.PORT || 5000;
 
 app.listen(PORT, "0.0.0.0", () => {
