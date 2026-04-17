@@ -7,9 +7,9 @@ export default function CheckoutPage() {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
-  const [address, setAddress] = useState("");
-  const [city, setCity] = useState("");
-  const [ward, setWard] = useState("");
+  const [address] = useState("");
+  const [city] = useState("");
+  const [ward] = useState("");
   const [paymentMethod, setPaymentMethod] = useState("vnpay");
 
  

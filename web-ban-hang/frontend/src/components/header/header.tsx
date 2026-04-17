@@ -212,7 +212,7 @@ const Header = () => {
       {/* TOP BANNER */}
       {showBanner && (
         <div className="top-banner">
-          <img src="/img2/topbar_img.jpg" alt="Banner Sale" />
+          <img src="https://clozet.io.vn/img2/topbar_img.jpg" alt="Banner Sale" />
           <button
             className="close-banner"
             onClick={() => setShowBanner(false)}
@@ -311,7 +311,7 @@ const Header = () => {
           {/* LOGO */}
           <div className="logo">
             <Link to="/">
-              <img src="/img2/logo.png" alt="Clozet" style={{height:40}} />
+              <img src="https://clozet.io.vn/img2/logo.png" alt="Clozet" style={{height:40}} />
             </Link>
           </div>
 
@@ -394,7 +394,7 @@ const Header = () => {
           <div className="search-overlay-content" onClick={(e) => e.stopPropagation()}>
             <div className="search-overlay-header">
               <Link to="/" onClick={closeSearch}>
-                <img src="/img2/logo.png" alt="Clozet" className="search-logo" />
+                <img src="https://clozet.io.vn/img2/logo.png" alt="Clozet" className="search-logo" />
               </Link>
               <div className="search-input-wrap">
                 <input

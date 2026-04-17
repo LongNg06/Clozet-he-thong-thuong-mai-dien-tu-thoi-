@@ -3,10 +3,10 @@ import { useEffect, useState } from "react";
 import "./slider.css";
 
 const images = [
-  "/img2/slide_2_img.jpg",
-  "/img2/bannerswap1.jpg",
-  "/img2/slide_3_img.jpg",
-  "/img2/slide_4_img.jpg",
+  "https://clozet.io.vn/img2/slide_2_img.jpg",
+  "https://clozet.io.vn/img2/slide_3_img.jpg",
+  "https://clozet.io.vn/img2/slide_4_img.jpg",
+  "https://clozet.io.vn/img2/bannerswap1.jpg"
 ];
 
 const BannerSlider = () => {

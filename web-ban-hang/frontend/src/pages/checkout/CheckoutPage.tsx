@@ -11,7 +11,7 @@ export default function CheckoutPage() {
   const [city, setCity] = useState("");
   const [ward, setWard] = useState("");
   const [district, setDistrict] = useState("");
-  const [paymentMethod, setPaymentMethod] = useState("vnpay");
+  // const [paymentMethod, setPaymentMethod] = useState("vnpay");
   const [showCodPopup, setShowCodPopup] = useState(false);
 
   const [errors, setErrors] = useState<Record<string, string>>({});
