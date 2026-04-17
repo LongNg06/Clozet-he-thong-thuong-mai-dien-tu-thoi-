@@ -27,8 +27,8 @@ app.use("/danhmuc_img", express.static("src/danhmuc_img"));
 app.use("/blog_img", express.static("src/blog_img"));
 
 
-// IMPORT ROUTES TỔNG
-const routes = require("./routes/index");
+// // IMPORT ROUTES TỔNG
+// const routes = require("./routes/index");
 
 
 // dùng routes
