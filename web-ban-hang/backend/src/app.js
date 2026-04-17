@@ -52,17 +52,18 @@ const orderRoutes = require("./routes/order.route");
 const revenueRoutes = require("./routes/revenue.route");
 const adminRoutes = require("./routes/admin.route");
 const vnpayRoutes = require("./routes/vnpay");
+const routes = require("./routes");
+app.use("/api", routes);
+// app.use("/api/categories", categoryRoutes);
+// app.use("/api/products", productRoutes);
+// app.use("/api/cart", cartRoutes);
+// app.use("/api/orders", orderRoutes);
+// app.use("/api/revenue", revenueRoutes);
+// app.use("/admin", adminRoutes);
+// app.use("/api", vnpayRoutes);
 
-app.use("/api/categories", categoryRoutes);
-app.use("/api/products", productRoutes);
-app.use("/api/cart", cartRoutes);
-app.use("/api/orders", orderRoutes);
-app.use("/api/revenue", revenueRoutes);
-app.use("/admin", adminRoutes);
-app.use("/api", vnpayRoutes);
 
-
-// static
+// // static
 // ...existing static and other app.use if needed...
 
 // ==================== PUBLIC BLOG API ====================
