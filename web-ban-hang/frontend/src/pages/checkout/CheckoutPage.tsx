@@ -33,7 +33,7 @@ export default function CheckoutPage() {
   useEffect(() => {
     if (isLoggedIn && user?.id) {
       // Logged in: fetch from backend cart
-      fetch(`http://localhost:5000/cart?id_KH=${user.id}`)
+      fetch(`https://api.clozet.io.vn/cart?id_KH=${user.id}`)
         .then((r) => r.json())
         .then((data) => setCartItems(Array.isArray(data) ? data : []))
         .catch(() => {
@@ -75,7 +75,7 @@ export default function CheckoutPage() {
     const src = it.variant_image || it.image || it.anh || it.img || it.thumbnail || ''
     if (!src) return '/assets/img/default.jpg'
     if (typeof src === 'string' && (src.startsWith('http') || src.startsWith('data:'))) return src
-    if (typeof src === 'string' && src.startsWith('/')) return `http://localhost:5000${src}`
+    if (typeof src === 'string' && src.startsWith('/')) return `https://api.clozet.io.vn${src}`
     return src
   }
   const getItemVariant = (it: any) => [it.size_name, it.color_name].filter(Boolean).join(' / ')
@@ -106,7 +106,7 @@ export default function CheckoutPage() {
       if (!email) setEmail(user.email || '')
       if (!phone) setPhone(user.phone || user.sdt || '')
       // Load saved addresses
-      fetch(`http://localhost:5000/user/addresses?id_KH=${user.id}`)
+      fetch(`https://api.clozet.io.vn/user/addresses?id_KH=${user.id}`)
         .then(r => r.json())
         .then(d => setSavedAddresses(Array.isArray(d) ? d : []))
         .catch(() => {});
@@ -147,7 +147,7 @@ export default function CheckoutPage() {
       const pid = item.id_sanpham;
       if (!pid) continue;
       try {
-        const sRes = await fetch(`http://localhost:5000/products/stock/${pid}`);
+        const sRes = await fetch(`https://api.clozet.io.vn/products/stock/${pid}`);
         if (sRes.ok) {
           const sData = await sRes.json();
           const qty = getItemQuantity(item);
@@ -158,7 +158,7 @@ export default function CheckoutPage() {
     }
 
     try {
-      const res = await fetch("http://localhost:5000/api/create-payment", {
+      const res = await fetch("https://api.clozet.io.vn/api/create-payment", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ amount: total })
@@ -184,7 +184,7 @@ export default function CheckoutPage() {
       for (const item of cartItems) {
         const pid = item.id_sanpham;
         if (!pid) continue;
-        const sRes = await fetch(`http://localhost:5000/products/stock/${pid}`);
+        const sRes = await fetch(`https://api.clozet.io.vn/products/stock/${pid}`);
         if (sRes.ok) {
           const sData = await sRes.json();
           const qty = getItemQuantity(item);
@@ -216,7 +216,7 @@ export default function CheckoutPage() {
         payment_method: "cod"
       };
 
-      const res = await fetch("http://localhost:5000/checkout", {
+      const res = await fetch("https://api.clozet.io.vn/checkout", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(orderPayload)
