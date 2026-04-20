@@ -23,7 +23,7 @@ router.post("/create-payment", async (req, res) => {
         const tomorrow = new Date(Date.now() + 24 * 60 * 60 * 1000);
 
         const paymentUrl = await vnpay.buildPaymentUrl({
-            vnp_Amount: amount * 10,
+            vnp_Amount: amount * 1,
             vnp_IpAddr: req.ip || "127.0.0.1",
             vnp_TxnRef: Date.now().toString(),
             vnp_OrderInfo: "Thanh toán test",
