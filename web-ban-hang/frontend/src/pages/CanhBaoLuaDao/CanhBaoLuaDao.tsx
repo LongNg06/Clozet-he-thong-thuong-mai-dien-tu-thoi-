@@ -8,7 +8,7 @@ export default function CanhBaoLuaDao() {
         <h1>CẢNH BÁO LỪA ĐẢO, GIẢ DANH SHIPPER CHIẾM ĐOẠT TÀI SẢN</h1>
 
         <div className="luadao-banner">
-          <img src="http://localhost:5000/static/canh_bao_lua_dao_.png" alt="Cảnh báo lừa đảo" />
+          <img src="http://localhost:5000/img/canh_bao_lua_dao_.png" alt="Cảnh báo lừa đảo" />
         </div>
 
         <p className="luadao-intro">
@@ -21,7 +21,7 @@ export default function CanhBaoLuaDao() {
         <h2 className="luadao-section-title">KỊCH BẢN: GIẢ DANH NHÂN VIÊN GIAO HÀNG</h2>
 
         <div className="luadao-banner">
-          <img src="http://localhost:5000/static/luadao%202.webp" alt="Kịch bản lừa đảo 5 bước" />
+          <img src="http://localhost:5000/img/luadao%202.webp" alt="Kịch bản lừa đảo 5 bước" />
         </div>
 
         <div className="luadao-steps">

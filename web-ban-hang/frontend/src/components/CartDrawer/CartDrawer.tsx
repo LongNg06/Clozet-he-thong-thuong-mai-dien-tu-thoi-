@@ -41,7 +41,7 @@ export default function CartDrawer() {
     const user = getUser();
     if (user && user.id) {
       // Logged in: fetch from backend DB
-      fetch(`http://localhost:5000/cart?id_KH=${user.id}`)
+      fetch(`http://localhost:5000/api/cart?id_KH=${user.id}`)
         .then((r) => r.json())
         .then((d: CartItem[]) => setItems(d || []))
         .catch(() => setItems([]));
@@ -68,7 +68,7 @@ export default function CartDrawer() {
     if (newQty < 1) return;
     const user = getUser();
     if (user && user.id) {
-      fetch("http://localhost:5000/cart/update", {
+      fetch("http://localhost:5000/api/cart/update", {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ id, id_KH: user.id, quantity: newQty }),
@@ -88,7 +88,7 @@ export default function CartDrawer() {
   function removeItem(id: number) {
     const user = getUser();
     if (user && user.id) {
-      fetch(`http://localhost:5000/cart/remove/${id}?id_KH=${user.id}`, { method: 'DELETE' })
+      fetch(`http://localhost:5000/api/cart/remove/${id}?id_KH=${user.id}`, { method: 'DELETE' })
         .then(() => load())
         .catch(() => load());
     } else {

@@ -67,12 +67,12 @@ export default function ProductDetail() {
 
   useEffect(() => {
     // Fetch fresh stock data
-    fetch(`http://localhost:5000/products/stock/${id}`)
+    fetch(`http://localhost:5000/api/products/stock/${id}`)
       .then(r => r.json())
       .then(data => { if (data.so_luong_ton !== undefined) setStock(data.so_luong_ton); })
       .catch(() => {});
 
-    fetch(`http://localhost:5000/products/${id}`)
+    fetch(`http://localhost:5000/api/products/${id}`)
       .then(res => res.json())
       .then((data: Product[] | Product) => {
         if (Array.isArray(data) && data.length > 0) {
@@ -144,7 +144,7 @@ export default function ProductDetail() {
   // Fetch reviews + check review eligibility
   useEffect(() => {
     if (!id) return;
-    fetch(`http://localhost:5000/reviews/${id}`)
+    fetch(`http://localhost:5000/api/reviews/${id}`)
       .then(r => r.json())
       .then(data => setReviews(data || []))
       .catch(() => {});
@@ -152,7 +152,7 @@ export default function ProductDetail() {
     const raw = localStorage.getItem("user");
     const user = raw ? JSON.parse(raw) : null;
     if (user?.id) {
-      fetch(`http://localhost:5000/reviews/can-review/${id}?id_KH=${user.id}`)
+      fetch(`http://localhost:5000/api/reviews/can-review/${id}?id_KH=${user.id}`)
         .then(r => r.json())
         .then(data => {
           setCanReview(data.canReview);
@@ -162,7 +162,7 @@ export default function ProductDetail() {
         .catch(() => {});
 
       // Check wishlist
-      fetch(`http://localhost:5000/wishlist/check/${id}?id_KH=${user.id}`)
+      fetch(`http://localhost:5000/api/wishlist/check/${id}?id_KH=${user.id}`)
         .then(r => r.json())
         .then(data => setInWishlist(data.inWishlist))
         .catch(() => {});
@@ -176,7 +176,7 @@ export default function ProductDetail() {
 
     setSubmittingReview(true);
     try {
-      const res = await fetch("http://localhost:5000/reviews", {
+      const res = await fetch("http://localhost:5000/api/reviews", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -193,9 +193,9 @@ export default function ProductDetail() {
         setReviewText("");
         setReviewStar(5);
         // Refresh reviews + eligibility
-        const rRes = await fetch(`http://localhost:5000/reviews/${id}`);
+        const rRes = await fetch(`http://localhost:5000/api/reviews/${id}`);
         setReviews(await rRes.json());
-        const cRes = await fetch(`http://localhost:5000/reviews/can-review/${id}?id_KH=${user.id}`);
+        const cRes = await fetch(`http://localhost:5000/api/reviews/can-review/${id}?id_KH=${user.id}`);
         const cData = await cRes.json();
         setCanReview(cData.canReview);
         setReviewOrders(cData.orders || []);
@@ -216,10 +216,10 @@ export default function ProductDetail() {
 
     try {
       if (inWishlist) {
-        await fetch(`http://localhost:5000/wishlist/${id}?id_KH=${user.id}`, { method: "DELETE" });
+        await fetch(`http://localhost:5000/api/wishlist/${id}?id_KH=${user.id}`, { method: "DELETE" });
         setInWishlist(false);
       } else {
-        await fetch("http://localhost:5000/wishlist", {
+        await fetch("http://localhost:5000/api/wishlist", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ id_KH: user.id, id_sanpham: Number(id) }),
@@ -359,7 +359,7 @@ export default function ProductDetail() {
             onClick={async () => {
               // Re-check stock before adding
               try {
-                const sRes = await fetch(`http://localhost:5000/products/stock/${product.id_sanpham}`);
+                const sRes = await fetch(`http://localhost:5000/api/products/stock/${product.id_sanpham}`);
                 const sData = await sRes.json();
                 if (sData.so_luong_ton !== undefined) setStock(sData.so_luong_ton);
                 if (sData.so_luong_ton <= 0) { alert("Sản phẩm đã hết hàng!"); return; }
@@ -374,7 +374,7 @@ export default function ProductDetail() {
               const isLoggedIn = !!raw;
               const user = raw ? JSON.parse(raw) : null;
               if (isLoggedIn && user?.id) {
-                const r = await fetch("http://localhost:5000/cart/add", {
+                const r = await fetch("http://localhost:5000/api/cart/add", {
                   method: "POST",
                   headers: { "Content-Type": "application/json" },
                   body: JSON.stringify({ id_KH: user.id, id_sanpham: product.id_sanpham, quantity: qty, size_name: sizeName, color_name: colorName, variant_image: variantImage }),
@@ -411,7 +411,7 @@ export default function ProductDetail() {
             onClick={async () => {
               // Re-check stock before buying
               try {
-                const sRes = await fetch(`http://localhost:5000/products/stock/${product.id_sanpham}`);
+                const sRes = await fetch(`http://localhost:5000/api/products/stock/${product.id_sanpham}`);
                 const sData = await sRes.json();
                 if (sData.so_luong_ton !== undefined) setStock(sData.so_luong_ton);
                 if (sData.so_luong_ton <= 0) { alert("Sản phẩm đã hết hàng!"); return; }
@@ -426,7 +426,7 @@ export default function ProductDetail() {
               const isLoggedIn = !!raw;
               const user = raw ? JSON.parse(raw) : null;
               if (isLoggedIn && user?.id) {
-                const r = await fetch("http://localhost:5000/cart/add", {
+                const r = await fetch("http://localhost:5000/api/cart/add", {
                   method: "POST",
                   headers: { "Content-Type": "application/json" },
                   body: JSON.stringify({ id_KH: user.id, id_sanpham: product.id_sanpham, quantity: qty, size_name: sizeName, color_name: colorName, variant_image: variantImage }),

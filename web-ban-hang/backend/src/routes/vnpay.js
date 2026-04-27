@@ -53,7 +53,7 @@ router.post("/create-payment", async (req, res) => {
                 vnp_TxnRef: id_donhang.toString(), // truyền id đơn hàng
                 vnp_OrderInfo: `Thanh toán đơn hàng #${id_donhang}`,
                 vnp_OrderType: ProductCode.Other,
-                vnp_ReturnUrl: "http://localhost:5000/api/check-payment-vnpay",
+                vnp_ReturnUrl: "http://localhost:5000/api/vnpay/check-payment-vnpay",
                 vnp_Locale: VnpLocale.VN,
                 vnp_CreateDate: dateFormat(new Date(), "yyyyMMddHHmmss"),
                 vnp_ExpireDate: dateFormat(tomorrow, "yyyyMMddHHmmss")

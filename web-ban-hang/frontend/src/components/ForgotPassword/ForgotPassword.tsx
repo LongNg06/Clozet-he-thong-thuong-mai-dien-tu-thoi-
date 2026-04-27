@@ -21,7 +21,7 @@ const ForgotPassword = () => {
     setError("");
     setLoading(true);
     try {
-      const res = await fetch("http://localhost:5000/forgot-password", {
+      const res = await fetch("http://localhost:5000/api/forgot-password", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email }),
@@ -50,7 +50,7 @@ const ForgotPassword = () => {
     setError("");
     setLoading(true);
     try {
-      const res = await fetch("http://localhost:5000/verify-reset-code", {
+      const res = await fetch("http://localhost:5000/api/verify-reset-code", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email, code, newPassword }),

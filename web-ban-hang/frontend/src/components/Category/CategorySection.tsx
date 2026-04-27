@@ -19,7 +19,7 @@ function CategorySection() {
   const navigate = useNavigate();
 
   useEffect(() => {
-    fetch(`${API_URL}/categories`)
+    fetch(`${API_URL}/api/categories`)
       .then((res) => res.json())
       .then((data: Category[]) => setCategories(data))
       .catch((err) => console.error(err));

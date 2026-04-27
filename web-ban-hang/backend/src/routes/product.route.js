@@ -1,6 +1,35 @@
+
 const express = require("express");
 const router = express.Router();
 const db = require("../database");
+
+// GET PRODUCTS BY BOSUUTAP (danhmuc)
+router.get("/bosuutap/:id", (req, res) => {
+  const { id } = req.params;
+  const sql = `
+    SELECT
+      sp.*,
+      GROUP_CONCAT(DISTINCT m.ten_mau ORDER BY m.ten_mau SEPARATOR ',') AS mau_sac,
+      GROUP_CONCAT(DISTINCT k.ten_kichco ORDER BY k.ten_kichco SEPARATOR ',') AS kich_co,
+      MAX(anb.url_anh) AS hover_img,
+      COALESCE(SUM(bt.so_luong_ton), 0) AS tong_ton_kho
+    FROM sanpham sp
+    LEFT JOIN sanpham_bienthe bt ON sp.id_sanpham = bt.id_sanpham
+    LEFT JOIN mau m ON bt.id_mau = m.id_mau
+    LEFT JOIN kich_co k ON bt.id_kichco = k.id_kichco
+    LEFT JOIN anh_sanpham_bienthe anb ON anb.id_sanphambienthe = bt.id_sanphambienthe
+    WHERE sp.id_danhmuc = ?
+    GROUP BY sp.id_sanpham
+    ORDER BY sp.id_sanpham DESC
+  `;
+  db.query(sql, [id], (err, results) => {
+    if (err) {
+      console.error("SQL ERROR (bosuutap):", err);
+      return res.status(500).json({ message: "Server error" });
+    }
+    res.json(results);
+  });
+});
 
 // GET ALL PRODUCTS (no limit) — for "Sản phẩm mới" page
 router.get("/all", (req, res) => {
@@ -125,8 +154,9 @@ WHERE sp.id_sanpham = ?
 
 });
 
-// Quick stock check endpoint
-router.get("/products/stock/:id", (req, res) => {
+
+// Quick stock check endpoint (RESTful: /api/stock/:id)
+router.get("/stock/:id", (req, res) => {
   const id = req.params.id;
   db.query(
     `SELECT sp.id_sanpham, sp.trang_thai, COALESCE(SUM(bt.so_luong_ton), 0) AS so_luong_ton

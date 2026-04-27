@@ -32,7 +32,7 @@ export default function CategoryTabs({
   }, []);
 
   function fetchForCategory(id: number) {
-    fetch(`http://localhost:5000/products/category/${id}`)
+    fetch(`http://localhost:5000/api/products/category/${id}`)
       .then((res) => res.json())
       .then((data) => {
         const mapped = (data || []).map((p: any) => ({

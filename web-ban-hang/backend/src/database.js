@@ -25,12 +25,13 @@ console.log("MYSQLHOST =", process.env.MYSQLHOST);
 console.log("MYSQLUSER =", process.env.MYSQLUSER);
 console.log("MYSQLDATABASE =", process.env.MYSQLDATABASE);
 
+// Đổi sang kết nối localhost để test API local
 const db = mysql.createConnection({
-  host: process.env.MYSQLHOST || process.env.DB_HOST,
-  user: process.env.MYSQLUSER || process.env.DB_USER,
-  password: process.env.MYSQLPASSWORD || process.env.DB_PASSWORD,
-  database: process.env.MYSQLDATABASE || process.env.DB_NAME,
-  port: process.env.MYSQLPORT || 3306,
+  host: "localhost",
+  user: "root",
+  password: "", // sửa lại nếu bạn có mật khẩu
+  database: "web_ban_hang", // sửa lại đúng tên database local của bạn
+  port: 3306,
   charset: "utf8mb4"
 });
 
@@ -38,7 +39,7 @@ db.connect((err) => {
   if (err) {
     console.error("❌ MySQL connect error:", err);
   } else {
-    console.log("✅ MySQL connected");
+    console.log("✅ MySQL connected (localhost)");
   }
 });
 

@@ -95,8 +95,8 @@ const NewProduct = () => {
     try {
       const url =
         id !== null
-          ? `http://localhost:5000/products/category/${encodeURIComponent(Number(id))}`
-          : `http://localhost:5000/products/all`;
+          ? `http://localhost:5000/api/products/category/${encodeURIComponent(Number(id))}`
+          : `http://localhost:5000/api/products/all`;
 
       const res = await fetch(url);
       if (!res.ok) {
@@ -205,7 +205,7 @@ const NewProduct = () => {
     let mounted = true;
     (async () => {
       try {
-        const res = await fetch("http://localhost:5000/categories");
+        const res = await fetch("http://localhost:5000/api/categories");
         if (!res.ok) {
           console.error("Failed to fetch categories", res.status);
         } else {

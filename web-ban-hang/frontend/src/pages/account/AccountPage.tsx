@@ -122,7 +122,7 @@ export default function AccountPage() {
       .then((d) => setAddresses(Array.isArray(d) ? d : []))
       .catch(() => setAddresses([]));
 
-    fetch(`${API}/wishlist?id_KH=${user.id}`)
+    fetch(`${API}/api/wishlist?id_KH=${user.id}`)
       .then((r) => r.json())
       .then((d) => setWishlist(Array.isArray(d) ? d : []))
       .catch(() => setWishlist([]));
@@ -261,7 +261,7 @@ export default function AccountPage() {
 
   // ===== WISHLIST FUNCTIONS =====
   const loadWishlist = () => {
-    fetch(`${API}/wishlist?id_KH=${user.id}`)
+    fetch(`${API}/api/wishlist?id_KH=${user.id}`)
       .then((r) => r.json())
       .then((d) => setWishlist(Array.isArray(d) ? d : []))
       .catch(() => setWishlist([]));
@@ -269,7 +269,7 @@ export default function AccountPage() {
 
   const removeFromWishlist = async (id_sanpham: number) => {
     try {
-      await fetch(`${API}/wishlist/${id_sanpham}?id_KH=${user.id}`, { method: "DELETE" });
+      await fetch(`${API}/api/wishlist/${id_sanpham}?id_KH=${user.id}`, { method: "DELETE" });
       loadWishlist();
     } catch {
       alert("Lỗi xóa sản phẩm yêu thích");

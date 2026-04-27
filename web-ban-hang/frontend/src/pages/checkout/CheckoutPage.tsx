@@ -36,7 +36,7 @@ export default function CheckoutPage() {
   useEffect(() => {
     if (isLoggedIn && user?.id) {
       // Logged in: fetch from backend cart
-      fetch(`http://localhost:5000/cart?id_KH=${user.id}`)
+      fetch(`http://localhost:5000/api/cart?id_KH=${user.id}`)
         .then((r) => r.json())
         .then((data) => setCartItems(Array.isArray(data) ? data : []))
         .catch(() => {
@@ -84,7 +84,7 @@ export default function CheckoutPage() {
       if (!email) setEmail(user.email || '')
       if (!phone) setPhone(user.phone || user.sdt || '')
       // Load saved addresses
-      fetch(`http://localhost:5000/user/addresses?id_KH=${user.id}`)
+      fetch(`http://localhost:5000/api/user/addresses?id_KH=${user.id}`)
         .then(r => r.json())
         .then(d => setSavedAddresses(Array.isArray(d) ? d : []))
         .catch(() => {});
@@ -136,7 +136,7 @@ export default function CheckoutPage() {
       const pid = item.id_sanpham;
       if (!pid) continue;
       try {
-        const sRes = await fetch(`http://localhost:5000/products/stock/${pid}`);
+        const sRes = await fetch(`http://localhost:5000/api/products/stock/${pid}`);
         if (sRes.ok) {
           const sData = await sRes.json();
           const qty = getItemQuantity(item);
@@ -163,7 +163,7 @@ export default function CheckoutPage() {
         payment_method: "vnpay"
       };
 
-      const res = await fetch("http://localhost:5000/api/create-payment", {
+      const res = await fetch("http://localhost:5000/api/vnpay/create-payment", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(orderPayload)
@@ -176,7 +176,7 @@ export default function CheckoutPage() {
       window.dispatchEvent(new CustomEvent("cartUpdated"));
       if (user?.id) {
         try {
-          await fetch(`http://localhost:5000/cart/checkout`, {
+          await fetch(`http://localhost:5000/api/cart/checkout`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ id_KH: user.id })
@@ -203,7 +203,7 @@ export default function CheckoutPage() {
       for (const item of cartItems) {
         const pid = item.id_sanpham;
         if (!pid) continue;
-        const sRes = await fetch(`http://localhost:5000/products/stock/${pid}`);
+        const sRes = await fetch(`http://localhost:5000/api/products/stock/${pid}`);
         if (sRes.ok) {
           const sData = await sRes.json();
           const qty = getItemQuantity(item);
@@ -220,22 +220,42 @@ export default function CheckoutPage() {
         }
       }
 
+
+      const mappedCartItems = cartItems.map(item => ({
+        id_sanpham: Number(item.id_sanpham),
+        so_luong: Number(item.so_luong ?? item.quantity ?? item.qty ?? 1),
+        gia_ban: Number(item.gia_ban ?? item.gia_khuyen_mai ?? item.gia_goc ?? item.price ?? 0)
+      }));
+      console.log("cartItems gửi lên:", mappedCartItems);
+      const invalidItem = mappedCartItems.find(
+        it => !it.id_sanpham || typeof it.so_luong !== 'number' || typeof it.gia_ban !== 'number' || isNaN(it.so_luong) || isNaN(it.gia_ban)
+      );
+      if (invalidItem) {
+        alert("Có sản phẩm trong giỏ hàng bị thiếu thông tin hoặc sai kiểu dữ liệu!\n" + JSON.stringify(invalidItem));
+        setLoading(false);
+        return;
+      }
       const orderPayload = {
         id_KH: user?.id || null,
-        ten_nguoinhan: name,
-        so_dien_thoai: phone,
-        dia_chi_cu_the: address,
-        phuong_xa: ward,
-        quan_huyen: district,
-        tinh_thanh: city,
-        items: cartItems,
+        id_diachi: selectedAddrId,
         tong_tien_hang: subtotal,
         phi_van_chuyen: 0,
         tong_thanh_toan: finalTotal,
-        payment_method: "cod"
+        cartItems: mappedCartItems
       };
+      console.log("orderPayload gửi lên /api/checkout:", orderPayload);
+      if (!orderPayload.id_diachi) {
+        alert("Vui lòng chọn địa chỉ giao hàng!");
+        setLoading(false);
+        return;
+      }
+      if (!orderPayload.cartItems || orderPayload.cartItems.length === 0) {
+        alert("Giỏ hàng trống hoặc dữ liệu sản phẩm lỗi!");
+        setLoading(false);
+        return;
+      }
 
-      const res = await fetch("http://localhost:5000/checkout", {
+      const res = await fetch("http://localhost:5000/api/checkout", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(orderPayload)
@@ -253,7 +273,7 @@ export default function CheckoutPage() {
       window.dispatchEvent(new CustomEvent("cartUpdated"));
       if (user?.id) {
         try {
-          await fetch(`http://localhost:5000/cart/checkout`, {
+          await fetch(`http://localhost:5000/api/cart/checkout`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ id_KH: user.id })
@@ -262,7 +282,7 @@ export default function CheckoutPage() {
       }
       // Show COD success popup
       setShowCodPopup(true);
-    } catch (e: any) {
+    } catch (e) {
       alert(e.message || "Lỗi khi tạo đơn hàng");
     } finally {
       setLoading(false);

@@ -51,7 +51,7 @@ const Header = () => {
       const raw = localStorage.getItem("user");
       const u = raw ? JSON.parse(raw) : null;
       if (u && u.id) {
-        fetch(`http://localhost:5000/cart?id_KH=${u.id}`)
+        fetch(`http://localhost:5000/api/cart?id_KH=${u.id}`)
           .then((r) => r.json())
           .then((data) => {
             const c = (data || []).reduce(
@@ -108,7 +108,7 @@ const Header = () => {
       const raw = localStorage.getItem("user");
       const u = raw ? JSON.parse(raw) : null;
       if (u?.id) {
-        fetch(`http://localhost:5000/notifications/unread-count?id_KH=${u.id}`)
+        fetch(`http://localhost:5000/api/notifications/unread-count?id_KH=${u.id}`)
           .then(r => r.json())
           .then(d => setNotiCount(d.count || 0))
           .catch(() => {});
@@ -125,12 +125,12 @@ const Header = () => {
     const raw = localStorage.getItem("user");
     const u = raw ? JSON.parse(raw) : null;
     if (u?.id) {
-      fetch(`http://localhost:5000/notifications?id_KH=${u.id}`)
+      fetch(`http://localhost:5000/api/notifications?id_KH=${u.id}`)
         .then(r => r.json())
         .then(d => setNotiList(d || []))
         .catch(() => {});
       // Mark all as read
-      fetch("http://localhost:5000/notifications/read-all", {
+      fetch("http://localhost:5000/api/notifications/read-all", {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ id_KH: u.id }),
@@ -155,7 +155,7 @@ const Header = () => {
     const raw = localStorage.getItem("user");
     const u = raw ? JSON.parse(raw) : null;
     if (!u?.id || !replyText.trim()) return;
-    await fetch("http://localhost:5000/notifications", {
+    await fetch("http://localhost:5000/api/notifications", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ id_KH: u.id, nguoi_gui: "user", tieu_de: "Phản hồi", noi_dung: replyText.trim(), parent_id: parentId }),
@@ -163,7 +163,7 @@ const Header = () => {
     setReplyText("");
     setReplyingTo(null);
     // Refresh list
-    const res = await fetch(`http://localhost:5000/notifications?id_KH=${u.id}`);
+    const res = await fetch(`http://localhost:5000/api/notifications?id_KH=${u.id}`);
     setNotiList(await res.json());
   };
 
@@ -183,12 +183,12 @@ const Header = () => {
       return;
     }
     searchTimerRef.current = setTimeout(() => {
-      fetch(`http://localhost:5000/products/search?q=${encodeURIComponent(searchQuery.trim())}&limit=4`)
+      fetch(`http://localhost:5000/api/products/search?q=${encodeURIComponent(searchQuery.trim())}&limit=4`)
         .then((r) => r.json())
         .then((data) => {
           setSearchResults(data || []);
           // Also get total count
-          fetch(`http://localhost:5000/products/search?q=${encodeURIComponent(searchQuery.trim())}&limit=9999`)
+          fetch(`http://localhost:5000/api/products/search?q=${encodeURIComponent(searchQuery.trim())}&limit=9999`)
             .then((r) => r.json())
             .then((all) => setTotalResults((all || []).length))
             .catch(() => setTotalResults(0));

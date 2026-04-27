@@ -26,7 +26,7 @@ export default function BoSuuTapMuaHe({
     // fetch products for each category and merge
     Promise.all(
       categoryIds.map((id) =>
-        fetch(`http://localhost:5000/products/category/${id}`).then((r) => r.json()).catch(() => [])
+        fetch(`http://localhost:5000/api/products/category/${id}`).then((r) => r.json()).catch(() => [])
       )
     )
       .then((arrays) => {

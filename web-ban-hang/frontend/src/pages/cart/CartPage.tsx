@@ -16,7 +16,7 @@ export default function CartPage() {
   function load() {
     const user = getUser();
     if (user && user.id) {
-      fetch(`http://localhost:5000/cart?id_KH=${user.id}`)
+      fetch(`http://localhost:5000/api/cart?id_KH=${user.id}`)
         .then((r) => r.json())
         .then((data) => setItems(data || []))
         .catch(() => setItems([]));

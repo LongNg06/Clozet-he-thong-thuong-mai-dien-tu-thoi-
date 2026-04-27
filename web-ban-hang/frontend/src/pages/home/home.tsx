@@ -34,7 +34,7 @@ export default function Home() {
   const [canScrollRight, setCanScrollRight] = useState(false);
 
   useEffect(() => {
-    fetch("http://localhost:5000/products")
+    fetch("http://localhost:5000/api/products")
       .then((res) => res.json())
       .then((data: Product[]) => {
         setProducts(data);
@@ -106,7 +106,7 @@ export function HomeNewsSection() {
   const navigate = useNavigate();
 
   useEffect(() => {
-    fetch("http://localhost:5000/blogs")
+    fetch("http://localhost:5000/api/blogs")
       .then((res) => res.json())
       .then((data: BlogPost[]) => setNewsItems(Array.isArray(data) ? data.slice(0, 4) : []))
       .catch(() => setNewsItems([]));

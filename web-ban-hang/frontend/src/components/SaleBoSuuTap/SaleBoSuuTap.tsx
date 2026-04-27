@@ -17,7 +17,7 @@ function SaleBanner() {
   const [products, setProducts] = useState<Product[]>([]);
       
   useEffect(() => {
-    fetch("http://localhost:5000/products/bosuutap/1")
+    fetch("http://localhost:5000/api/products/bosuutap/1")
       .then((res) => res.json())
       .then((data) => {
         // Ensure image URLs are absolute so <img> loads correctly
